@@ -16,7 +16,7 @@ type Manager interface {
 
 func NewManager(addrs []string) (Manager, error) {
 	if len(addrs) == 0 {
-		return nil, emptyError.New("NewCluster")
+		return nil, emptyError.New("NewManager")
 	}
 	g := &Group{
 		Opt:   defaultOption,
