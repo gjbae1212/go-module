@@ -62,28 +62,29 @@ func NewCertificationED25519(caPem []byte, meta *CertMeta) (private string, publ
 	sshcert.Extensions["permit-pty"] = ""
 	sshcert.Extensions["permit-user-rc"] = ""
 
-	cert, err = createCertification(sshcert, caPem)
+	cert, err = createCertificationED25519(sshcert, caPem)
 	return
 }
 
-func NewCertificationED25519WithPKey(caPem []byte, pkeyPem []byte, meta *CertMeta) (cert string, err error) {
-	if len(caPem) == 0 || len(pkeyPem) == 0 || meta == nil {
-		err = mssh.EmptyError.New("NewCertificationWithPKEY")
+func NewCertificationED25519WithPub(caPem []byte, pubAuthKey []byte, meta *CertMeta) (cert string, err error) {
+	if len(caPem) == 0 || len(pubAuthKey) == 0 || meta == nil {
+		err = mssh.EmptyError.New("NewCertificationED25519WithPKey")
 		return
 	}
-	block, _ := pem.Decode(pkeyPem)
-	if block.Type != "OPENSSH PRIVATE KEY" {
-		err = mssh.InvalidParamsError.New("NewCertificationED25519WithPKey")
-		return
-	}
-	pkey, suberr := ssh.ParsePrivateKey(pkeyPem)
+
+	public, _, _, _, suberr := ssh.ParseAuthorizedKey(pubAuthKey)
 	if suberr != nil {
 		err = suberr
 		return
 	}
+	if public.Type() != "ssh-ed25519" {
+		err = mssh.InvalidParamsError.New("NewCertificationED25519WithPKey")
+		return
+	}
+
 	// generate certification
 	sshcert := &ssh.Certificate{
-		Key:             pkey.PublicKey(), // pubkey
+		Key:             public, // public
 		Serial:          0,
 		CertType:        ssh.UserCert,
 		KeyId:           meta.KeyId,                 // comment
@@ -98,13 +99,13 @@ func NewCertificationED25519WithPKey(caPem []byte, pkeyPem []byte, meta *CertMet
 	sshcert.Extensions["permit-pty"] = ""
 	sshcert.Extensions["permit-user-rc"] = ""
 
-	cert, err = createCertification(sshcert, caPem)
+	cert, err = createCertificationED25519(sshcert, caPem)
 	return
 }
 
-func createCertification(cert *ssh.Certificate, caPem []byte) (string, error) {
+func createCertificationED25519(cert *ssh.Certificate, caPem []byte) (string, error) {
 	if cert == nil || len(caPem) == 0 {
-		return "", mssh.EmptyError.New("createCertification")
+		return "", mssh.EmptyError.New("createCertificationED25519")
 	}
 	signer, err := ssh.ParsePrivateKey(caPem)
 	if err != nil {

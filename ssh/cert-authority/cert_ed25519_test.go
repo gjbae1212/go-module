@@ -15,7 +15,7 @@ import (
 )
 
 var (
-		testCaPem = `-----BEGIN OPENSSH PRIVATE KEY-----
+	testCaPem = `-----BEGIN OPENSSH PRIVATE KEY-----
 b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAACFwAAAAdzc2gtcn
 NhAAAAAwEAAQAAAgEArsAxxa3nDf1AbJiRR1nlG4dJeUQW1A8DcxTP4n5rKHMAQIB364GJ
 ooMfgCemrBXU4jzyfQePWycJN9XA8iG2BOQ49p1C0iOiyF9aU1eHYfPPvG38QQyaOJ9AXc
@@ -95,8 +95,13 @@ func TestNewCertificationED25519WithPKey(t *testing.T) {
 		Bytes: edkey.MarshalED25519PrivateKey(pkey),
 	}
 	private := pem.EncodeToMemory(pkeyBlock)
-
-	cert, err := NewCertificationED25519WithPKey([]byte(testCaPem), private, &CertMeta{
+	signer, err := ssh.ParsePrivateKey(private)
+	assert.NoError(err)
+	public := ssh.MarshalAuthorizedKey(signer.PublicKey())
+	sshPub, _, _, _, err := ssh.ParseAuthorizedKey(public)
+	assert.NoError(err)
+	assert.Equal(string(ssh.MarshalAuthorizedKey(sshPub)), string(public))
+	cert, err := NewCertificationED25519WithPub([]byte(testCaPem), public, &CertMeta{
 		KeyId:      "allan",
 		Principals: []string{"ubuntu"},
 		Before:     time.Now().Add(time.Hour),
@@ -112,10 +117,9 @@ func TestNewCertificationED25519WithPKey(t *testing.T) {
 		After:      time.Now(),
 	}
 
-	pri, _, cert1, err := NewCertificationED25519([]byte(testCaPem), meta)
+	_, pub, cert1, err := NewCertificationED25519([]byte(testCaPem), meta)
 	assert.NoError(err)
-
-	cert2, err := NewCertificationED25519WithPKey([]byte(testCaPem), []byte(pri), meta)
+	cert2, err := NewCertificationED25519WithPub([]byte(testCaPem), []byte(pub), meta)
 	assert.NoError(err)
 	assert.NotEqual(cert1, cert2)
 }
