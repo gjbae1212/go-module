@@ -85,7 +85,7 @@ func TestNewCertificationED25519(t *testing.T) {
 	_ = cert
 }
 
-func TestNewCertificationED25519WithPKey(t *testing.T) {
+func TestNewCertificationED25519WithPub(t *testing.T) {
 	assert := assert.New(t)
 
 	_, pkey, err := ed25519.GenerateKey(rand.Reader)

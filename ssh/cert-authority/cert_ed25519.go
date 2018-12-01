@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"encoding/pem"
 	"strings"
-	"time"
 
 	mssh "github.com/gjbae1212/go-module/ssh"
 	"github.com/mikesmitty/edkey"
@@ -13,17 +12,10 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-type CertMeta struct {
-	KeyId      string
-	Principals []string
-	Before     time.Time
-	After      time.Time
-}
-
 // Only Support ED25519 Algorithm
 func NewCertificationED25519(caPem []byte, meta *CertMeta) (private string, public string, cert string, err error) {
 	if len(caPem) == 0 || meta == nil {
-		err = mssh.EmptyError.New("NewCertification")
+		err = mssh.EmptyError.New("NewCertificationED25519")
 		return
 	}
 	// generate ed25519
@@ -68,7 +60,7 @@ func NewCertificationED25519(caPem []byte, meta *CertMeta) (private string, publ
 
 func NewCertificationED25519WithPub(caPem []byte, pubAuthKey []byte, meta *CertMeta) (cert string, err error) {
 	if len(caPem) == 0 || len(pubAuthKey) == 0 || meta == nil {
-		err = mssh.EmptyError.New("NewCertificationED25519WithPKey")
+		err = mssh.EmptyError.New("NewCertificationED25519WithPub")
 		return
 	}
 
@@ -78,7 +70,7 @@ func NewCertificationED25519WithPub(caPem []byte, pubAuthKey []byte, meta *CertM
 		return
 	}
 	if public.Type() != "ssh-ed25519" {
-		err = mssh.InvalidParamsError.New("NewCertificationED25519WithPKey")
+		err = mssh.InvalidParamsError.New("NewCertificationED25519WithPub")
 		return
 	}
 
