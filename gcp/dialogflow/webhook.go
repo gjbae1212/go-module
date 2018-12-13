@@ -9,6 +9,7 @@ import (
 )
 
 // https://dialogflow.com/docs/fulfillment/how-it-works
+// https://developers.google.com/actions/build/json/
 func JsonToWebhookRequest(json []byte) (*dialogflow.WebhookRequest, error) {
 	if len(json) == 0 {
 		return nil, gcp.EmptyError.New("webhook JsonToWebhookRequest")
