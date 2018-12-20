@@ -8,6 +8,8 @@ import (
 type Manager interface {
 	ProfileService
 	CategoryService
+	FeedService
+	SubscriptionService
 }
 
 func NewManager(accestoken, refreshtoken string) (Manager, error) {

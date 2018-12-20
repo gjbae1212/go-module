@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/url"
+	"strconv"
 )
 
 type Category struct {
@@ -23,7 +24,7 @@ type CategoryService interface {
 }
 
 func (fly *Feedly) GetCategories(withStats bool) ([]*Category, error) {
-	req, err := fly.newRequest(http.MethodGet, "/collections", map[string]interface{}{"withStats": withStats})
+	req, err := fly.newRequest(http.MethodGet, "/collections?withStats="+strconv.FormatBool(withStats), nil)
 	if err != nil {
 		return nil, err
 	}
