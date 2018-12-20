@@ -10,8 +10,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestFeedly_GetFeed(t *testing.T) {
+func TestFeedly_GetUnreads(t *testing.T) {
 	assert := assert.New(t)
+
 	accessToken := os.Getenv("FEEDLY_ACCESS_TOKEN")
 	refreshToken := os.Getenv("FEEDLY_REFRESH_TOKEN")
 	fly := &Feedly{
@@ -21,13 +22,14 @@ func TestFeedly_GetFeed(t *testing.T) {
 		hold:         &Threshold{},
 	}
 
-	feed, err := fly.GetFeed("feed/http://feeds.feedburner.com/TechCrunch/startups")
+	unread, err := fly.GetUnreads("", false, 0)
 	assert.NoError(err)
-	spew.Dump(feed)
+	spew.Dump(unread)
 }
 
-func TestFeedly_SearchFeeds(t *testing.T) {
+func TestFeedly_MarkEntriesAsAction(t *testing.T) {
 	assert := assert.New(t)
+
 	accessToken := os.Getenv("FEEDLY_ACCESS_TOKEN")
 	refreshToken := os.Getenv("FEEDLY_REFRESH_TOKEN")
 	fly := &Feedly{
@@ -37,7 +39,20 @@ func TestFeedly_SearchFeeds(t *testing.T) {
 		hold:         &Threshold{},
 	}
 
-	feed, err := fly.SearchFeeds("golang", "en", 5)
+	categories, err := fly.GetCategories(false)
 	assert.NoError(err)
-	spew.Dump(feed)
+	for _, category := range categories {
+		if category.Label == "TEST" {
+			stream, err := fly.GetEntryIdsOfStream(category.Id, "", true, false, 20, 0)
+			assert.NoError(err)
+			err = fly.MarkEntriesAsAction(stream.Ids, AsRead)
+			assert.NoError(err)
+			err = fly.MarkEntriesAsAction(stream.Ids, AsUnRead)
+			assert.NoError(err)
+			err = fly.MarkEntriesAsAction(stream.Ids, AsSaved)
+			assert.NoError(err)
+			err = fly.MarkEntriesAsAction(stream.Ids, AsUnSaved)
+			assert.NoError(err)
+		}
+	}
 }

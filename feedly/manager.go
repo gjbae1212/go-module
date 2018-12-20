@@ -6,10 +6,15 @@ import (
 )
 
 type Manager interface {
+	MainService
 	ProfileService
 	CategoryService
 	FeedService
 	SubscriptionService
+	EntryService
+	StreamService
+	MarkerService
+	TagService
 }
 
 func NewManager(accestoken, refreshtoken string) (Manager, error) {
@@ -20,8 +25,10 @@ func NewManager(accestoken, refreshtoken string) (Manager, error) {
 		IdleConnTimeout: time.Duration(10) * time.Minute,
 	}
 	fly := &Feedly{
-		client: &http.Client{Transport: tr, Timeout: time.Duration(10) * time.Second},
-		hold:   &Threshold{},
+		client:       &http.Client{Transport: tr, Timeout: time.Duration(10) * time.Second},
+		hold:         &Threshold{},
+		accessToken:  accestoken,
+		refreshToken: refreshtoken,
 	}
 
 	return Manager(fly), nil

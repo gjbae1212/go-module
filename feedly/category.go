@@ -7,20 +7,9 @@ import (
 	"strconv"
 )
 
-type Category struct {
-	Id           string          `json:"id,omitempty"`
-	Label        string          `json:"label,omitempty"`
-	Description  string          `json:"description,omitempty"`
-	Customizable bool            `json:"customizable,omitempty"`
-	Enterprise   bool            `json:"enterprise,omitempty"`
-	Cover        string          `json:"cover,omitempty"`
-	Created      int             `json:"created,omitempty"`
-	NumFeeds     int             `json:"numFeeds,omitempty"`
-	Feeds        []*Subscription `json:"feeds,omitempty"`
-}
-
 type CategoryService interface {
 	GetCategories(withStats bool) ([]*Category, error)
+	GetCategory(categoryId string) (*Category, error)
 }
 
 func (fly *Feedly) GetCategories(withStats bool) ([]*Category, error) {

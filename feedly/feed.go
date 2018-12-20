@@ -2,25 +2,15 @@ package feedly
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 )
-
-type Feed struct {
-	Id          string   `json:"id,omitempty"`
-	FeedId      string   `json:"feedId,omitempty"`
-	Title       string   `json:"title,omitempty"`
-	Description string   `json:"description,omitempty"`
-	Language    string   `json:"language,omitempty"`
-	Website     string   `json:"website,omitempty"`
-	Topics      []string `json:"topics,omitempty"`
-	Velocity    float64  `json:"velocity,omitempty"`
-	Subscribers int      `json:"subscribers,omitempty"`
-	State       string   `json:"state,omitempty"`
-}
 
 type FeedService interface {
 	GetFeed(feedId string) (*Feed, error)
+	SearchFeeds(query, locale string, count int) ([]*Feed, error)
 }
 
 func (fly *Feedly) GetFeed(feedId string) (*Feed, error) {
@@ -40,4 +30,34 @@ func (fly *Feedly) GetFeed(feedId string) (*Feed, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+func (fly *Feedly) SearchFeeds(query, locale string, count int) ([]*Feed, error) {
+	if query == "" {
+		return nil, emptyError.New("Feedly GetSearchFeed")
+	}
+
+	var params []string
+	params = append(params, "query="+url.PathEscape(query))
+	if locale != "" {
+		params = append(params, "locale="+locale)
+	}
+	if count < 0 {
+		count = 20
+	}
+	params = append(params, "count="+fmt.Sprintf("%d", count))
+
+	req, err := fly.newRequest(http.MethodGet, "/search/feeds?"+strings.Join(params, "&"), nil)
+	if err != nil {
+		return nil, err
+	}
+	body, err := fly.do(req)
+	if err != nil {
+		return nil, err
+	}
+	result := &SearchResult{}
+	if err := json.Unmarshal(body, result); err != nil {
+		return nil, err
+	}
+	return result.Feeds, nil
 }

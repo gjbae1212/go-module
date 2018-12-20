@@ -9,6 +9,8 @@ import (
 	"strings"
 	"sync"
 
+	"fmt"
+
 	"github.com/gjbae1212/go-module/util"
 )
 
@@ -26,12 +28,97 @@ type Feedly struct {
 	hold         *Threshold // threshold
 	accessToken  string     // access token
 	refreshToken string     // refresh token
+	userId       string     // feedly userId
 }
 
 type Threshold struct {
 	limitCount int // api 콜 제한
 	callCount  int // api 콜 횟수
 	resetCount int // api 콜 리셋까지 남은시간
+}
+
+type MainService interface {
+	UserId() (string, error)
+	FeedId(url string) (string, error)
+	CategoryId(labelOrUuid string) (string, error)
+	CategoryAllId() (string, error)
+	TagId(labelOrUuid string) (string, error)
+	TagAllId() (string, error)
+	TagSavedId() (string, error)
+	TagReadId() (string, error)
+}
+
+func (fly *Feedly) UserId() (string, error) {
+	if fly.userId != "" {
+		return fly.userId, nil
+	}
+	profile, err := fly.GetProfile()
+	if err != nil {
+		return "", nil
+	}
+	fly.userId = fmt.Sprintf("user/%s", profile.Id)
+	return fly.userId, nil
+}
+
+func (fly *Feedly) FeedId(url string) (string, error) {
+	if url == "" {
+		return "", emptyError.New("Feedly FeedId")
+	}
+	return fmt.Sprintf("feed/%s", url), nil
+}
+
+func (fly *Feedly) CategoryId(labelOrUuid string) (string, error) {
+	if labelOrUuid == "" {
+		return "", emptyError.New("Feedly CategoryId")
+	}
+	userId, err := fly.UserId()
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s/category/%s", userId, labelOrUuid), nil
+}
+
+func (fly *Feedly) CategoryAllId() (string, error) {
+	userId, err := fly.UserId()
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s/category/global.all", userId), nil
+}
+
+func (fly *Feedly) TagId(labelOrUuid string) (string, error) {
+	if labelOrUuid == "" {
+		return "", emptyError.New("Feedly TagId")
+	}
+	userId, err := fly.UserId()
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s/tag/%s", userId, labelOrUuid), nil
+}
+
+func (fly *Feedly) TagAllId() (string, error) {
+	userId, err := fly.UserId()
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s/tag/global.all", userId), nil
+}
+
+func (fly *Feedly) TagSavedId() (string, error) {
+	userId, err := fly.UserId()
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s/tag/global.saved", userId), nil
+}
+
+func (fly *Feedly) TagReadId() (string, error) {
+	userId, err := fly.UserId()
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s/tag/global.read", userId), nil
 }
 
 func (fly *Feedly) newRequest(method, path string, params map[string]interface{}) (*http.Request, error) {
