@@ -2,15 +2,11 @@ package redis
 
 import (
 	"time"
-
 	"sync"
-
 	"strings"
-
 	"strconv"
-
 	redigo "github.com/gomodule/redigo/redis"
-	"stathat.com/c/consistent"
+	"github.com/gjbae1212/consistent"
 )
 
 var (
