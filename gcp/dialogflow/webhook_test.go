@@ -13,6 +13,68 @@ import (
 	dialogflow "google.golang.org/genproto/googleapis/cloud/dialogflow/v2"
 )
 
+func TestGenerateAndParseSession(t *testing.T) {
+	assert := assert.New(t)
+	projectId := "allan"
+	sessionId := "3483478324vcxe/////sdf//nfkj(*#^$*(!!@#()@&$($&T*%#$*(_)@#*$"
+
+	_, err := GenerateSession("", "")
+	assert.Error(err)
+
+	session, err := GenerateSession(projectId, sessionId)
+	assert.NoError(err)
+
+	_, _, err = ParseSession("dsfsf34u390dsf/3praf/")
+	assert.Error(err)
+
+	pId, sId, err := ParseSession(session)
+	assert.NoError(err)
+	assert.Equal(pId, projectId)
+	assert.Equal(sId, sessionId)
+}
+
+func TestGenerateAndParseContext(t *testing.T) {
+	assert := assert.New(t)
+	projectId := "allan"
+	sessionId := "3483478324vcxe/////sdf//nfkj(*#^$*(!!@#()@&$($&T*%#$*(_)@#*$"
+	contextId := "dsfjh9sdo30ujdvioj324"
+
+	_, err := GenerateContext("", "", "")
+	assert.Error(err)
+
+	context, err := GenerateContext(projectId, sessionId, contextId)
+	assert.NoError(err)
+
+	_, _, _, err = ParseContext("dsfsf34u390dsf/3praf/")
+	assert.Error(err)
+
+	pId, sId, cId, err := ParseContext(context)
+	assert.NoError(err)
+	assert.Equal(pId, projectId)
+	assert.Equal(sId, sessionId)
+	assert.Equal(cId, contextId)
+}
+
+func TestGenerateAndParseIntent(t *testing.T) {
+	assert := assert.New(t)
+	projectId := "allan"
+	intentId := "esfoij23j4xcfd$$dfkl"
+
+	_, err := GenerateIntent("", "")
+	assert.Error(err)
+
+	intent, err := GenerateIntent(projectId, intentId)
+	assert.NoError(err)
+
+	_, _, err = ParseIntent("dsfsf34u390dsf/3praf/")
+	assert.Error(err)
+
+	pId, iId, err := ParseIntent(intent)
+	assert.NoError(err)
+	assert.Equal(pId, projectId)
+	assert.Equal(iId, intentId)
+}
+
 func TestWebhookRequest(t *testing.T) {
 	assert := assert.New(t)
 	req := &dialogflow.WebhookRequest{
