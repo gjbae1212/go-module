@@ -98,8 +98,11 @@ func JsonToWebhookRequest(json []byte) (*dialogflow.WebhookRequest, error) {
 	if len(json) == 0 {
 		return nil, gcp.EmptyError.New("webhook JsonToWebhookRequest")
 	}
+
+	unmarshaler := &jsonpb.Unmarshaler{}
+	unmarshaler.AllowUnknownFields = true
 	wr := &dialogflow.WebhookRequest{}
-	if err := jsonpb.Unmarshal(bytes.NewReader(json), wr); err != nil {
+	if err := unmarshaler.Unmarshal(bytes.NewReader(json), wr); err != nil {
 		return nil, err
 	}
 	return wr, nil
@@ -122,8 +125,11 @@ func JsonToWebhookResponse(json []byte) (*dialogflow.WebhookResponse, error) {
 	if len(json) == 0 {
 		return nil, gcp.EmptyError.New("webhook JsonToWebhookResponse")
 	}
+	unmarshaler := &jsonpb.Unmarshaler{}
+	unmarshaler.AllowUnknownFields = true
+
 	wr := &dialogflow.WebhookResponse{}
-	if err := jsonpb.Unmarshal(bytes.NewReader(json), wr); err != nil {
+	if err := unmarshaler.Unmarshal(bytes.NewReader(json), wr); err != nil {
 		return nil, err
 	}
 	return wr, nil
