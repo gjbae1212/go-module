@@ -127,7 +127,6 @@ func JsonToWebhookResponse(json []byte) (*dialogflow.WebhookResponse, error) {
 	}
 	unmarshaler := &jsonpb.Unmarshaler{}
 	unmarshaler.AllowUnknownFields = true
-
 	wr := &dialogflow.WebhookResponse{}
 	if err := unmarshaler.Unmarshal(bytes.NewReader(json), wr); err != nil {
 		return nil, err
