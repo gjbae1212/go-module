@@ -20,3 +20,16 @@ func MapToStructPB(m map[string]interface{}) (*structpb.Struct, error) {
 	}
 	return result, nil
 }
+
+func ObjectToStructPB(o interface{}) (*structpb.Struct, error) {
+	jb, err := json.Marshal(o)
+	if err != nil {
+		return nil, err
+	}
+	unmarshaler := &jsonpb.Unmarshaler{}
+	result := &structpb.Struct{}
+	if err = unmarshaler.Unmarshal(bytes.NewReader(jb), result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}

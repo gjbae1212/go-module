@@ -17,3 +17,17 @@ func TestMapToStructPB(t *testing.T) {
 	assert.Equal(result.Fields["allan"].GetStringValue(), m["allan"])
 	assert.Equal(result.Fields["power"].GetNumberValue(), float64(m["power"].(int)))
 }
+
+func TestObjectToStructPB(t *testing.T) {
+	assert := assert.New(t)
+
+	s := struct {
+		Text string `json:"text,omitempty"`
+	}{
+		Text: "hihi",
+	}
+
+	result, err := ObjectToStructPB(s)
+	assert.NoError(err)
+	assert.Equal(result.Fields["text"].GetStringValue(), s.Text)
+}
