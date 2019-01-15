@@ -34,8 +34,8 @@ type BasicCard struct {
 }
 
 type CarouselBrowse struct {
-	Items               []*Item `json:"items,omitempty"`
-	ImageDisplayOptions string  `json:"imageDisplayOptions,omitempty"`
+	Items               []*CarouselBrowseItem `json:"items,omitempty"`
+	ImageDisplayOptions string                `json:"imageDisplayOptions,omitempty"`
 }
 
 type TableCard struct {
@@ -103,7 +103,7 @@ type VersionFilter struct {
 }
 
 type SimpleSelect struct {
-	Items []*Item `json:"items,omitempty"`
+	Items []*SimpleSelectItem `json:"items,omitempty"`
 }
 
 type ListSelect struct {
@@ -114,6 +114,11 @@ type ListSelect struct {
 type CarouselSelect struct {
 	Items               []*CarouselItem     `json:"items,omitempty"`
 	ImageDisplayOptions ImageDisplayOptions `json:"imageDisplayOptions,omitempty"`
+}
+
+type SimpleSelectItem struct {
+	OptionInfo *OptionInfo `json:"optionInfo,omitempty"`
+	Title      string      `json:"title,omitempty"`
 }
 
 type ListItem struct {
@@ -133,6 +138,14 @@ type CarouselItem struct {
 	Title       string      `json:"title,omitempty"`
 	Description string      `json:"description,omitempty"`
 	Image       *Image      `json:"image,omitempty"`
+}
+
+type CarouselBrowseItem struct {
+	Title         string         `json:"title,omitempty"`
+	Description   string         `json:"description,omitempty"`
+	Footer        string         `json:"footer,omitempty"`
+	Image         *Image         `json:"image,omitempty"`
+	OpenUrlAction *OpenUrlAction `json:"openUrlAction,omitempty"`
 }
 
 type Argument struct {
