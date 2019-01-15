@@ -76,3 +76,23 @@ const (
 	PM_DEVICE_COARSE_LOCATION  Permission = "DEVICE_COARSE_LOCATION"
 	PM_UPDATE                  Permission = "UPDATE"
 )
+
+func (ivt IntentValueType) Intent() string {
+	switch ivt {
+	case IVT_SIGN_IN:
+		return "actions.intent.SIGN_IN"
+	case IVT_PERMISSION:
+		return "actions.intent.PERMISSION"
+	case IVT_OPTION:
+		return "actions.intent.OPTION"
+	case IVT_LINK:
+		return "actions.intent.LINK"
+	case IVT_DELIVERY_ADDRESS:
+		return "actions.intent.DELIVERY_ADDRESS"
+	case IVT_DATETIME:
+		return "actions.intent.DATETIME"
+	case IVT_CONFIRMATION:
+		return "actions.intent.CONFIRMATION"
+	}
+	return ""
+}

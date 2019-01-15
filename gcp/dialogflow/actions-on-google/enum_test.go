@@ -8,5 +8,7 @@ import (
 
 func TestEnum(t *testing.T) {
 	assert := assert.New(t)
-	_ = assert
+
+	data := IVT_DATETIME
+	assert.Equal(data.Intent(), "actions.intent.DATETIME")
 }
