@@ -32,15 +32,6 @@ func GetModulePath() string {
 	return modulePath
 }
 
-func StringInSlice(str string, list []string) bool {
-	for _, v := range list {
-		if v == str {
-			return true
-		}
-	}
-	return false
-}
-
 func CheckHttpMethod(method string) bool {
 	return StringInSlice(strings.ToUpper(method), httpMethods)
 }
