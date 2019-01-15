@@ -14,12 +14,6 @@ type RichResponse struct {
 }
 
 type SystemIntent struct {
-	Intent              string               `json:"intent,omitempty"`
-	ConfirmationData    *ConfirmationData    `json:"data,omitempty"`
-	DateTimeData        *DateTimeData        `json:"data,omitempty"`
-	DeliveryAddressData *DeliveryAddressData `json:"data,omitempty"`
-	OptionData          *OptionData          `json:"data,omitempty"`
-	PermissionData      *PermissionData      `json:"data,omitempty"`
-	SignInData          *SignInData          `json:"data,omitempty"`
-	LinkData            *LinkData            `json:"data,omitempty"`
+	Intent string            `json:"intent,omitempty"`
+	Data   *SystemIntentData `json:"data,omitempty"`
 }

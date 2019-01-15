@@ -15,7 +15,15 @@ func TestResponse(t *testing.T) {
 	response := &WebhookResponse{
 		ExpectUserResponse: false,
 		RichResponse:       &RichResponse{},
-		SystemIntent:       &SystemIntent{},
+		SystemIntent: &SystemIntent{
+			Intent: "allan",
+			Data: &SystemIntentData{
+				Type: IVT_OPTION,
+				OptionData: &OptionData{
+					ListSelect: &ListSelect{},
+				},
+			},
+		},
 	}
 	bys, err := json.Marshal(response)
 	assert.NoError(err)

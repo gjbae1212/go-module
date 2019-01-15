@@ -13,7 +13,6 @@ func TestSystemIntentData(t *testing.T) {
 	assert := assert.New(t)
 
 	data := &SignInData{
-		Type:            IVT_SIGN_IN,
 		SignInValueSpec: SignInValueSpec{OptContext: "embeding"},
 	}
 	result, err := json.Marshal(data)

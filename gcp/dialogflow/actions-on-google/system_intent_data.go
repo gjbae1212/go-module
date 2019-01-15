@@ -1,39 +1,43 @@
 package actions_on_google
 
+type SystemIntentData struct {
+	Type IntentValueType `json:"@type,omitempty"`
+	*ConfirmationData
+	*DateTimeData
+	*DeliveryAddressData
+	*OptionData
+	*PermissionData
+	*SignInData
+	*LinkData
+}
+
 type ConfirmationData struct {
-	Type       IntentValueType         `json:"@type,omitempty"`
 	DialogSpec *ConfirmationDialogSpec `json:"dialogSpec,omitempty"`
 }
 
 type DateTimeData struct {
-	Type       IntentValueType     `json:"@type,omitempty"`
 	DialogSpec *DateTimeDialogSpec `json:"dialogSpec,omitempty"`
 }
 
 type DeliveryAddressData struct {
-	Type           IntentValueType `json:"@type,omitempty"`
 	AddressOptions *AddressOptions `json:"addressOptions,omitempty"`
 }
 
 type OptionData struct {
-	Type           IntentValueType `json:"@type,omitempty"`
 	SimpleSelect   *SimpleSelect   `json:"simpleSelect,omitempty"`
 	ListSelect     *ListSelect     `json:"listSelect,omitempty"`
 	CarouselSelect *CarouselSelect `json:"carouselSelect,omitempty"`
 }
 
 type PermissionData struct {
-	Type IntentValueType `json:"@type,omitempty"`
 	PermissionValueSpec
 }
 
 type SignInData struct {
-	Type IntentValueType `json:"@type,omitempty"`
 	SignInValueSpec
 }
 
 type LinkData struct {
-	Type IntentValueType `json:"@type,omitempty"`
 	LinkValueSpec
 }
 
