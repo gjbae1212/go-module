@@ -96,3 +96,43 @@ func (ivt IntentValueType) Intent() string {
 	}
 	return ""
 }
+
+func (ivt IntentValueType) Event() string {
+	switch ivt {
+	case IVT_SIGN_IN:
+		return "actions_intent_SIGN_IN"
+	case IVT_PERMISSION:
+		return "actions_intent_PERMISSION"
+	case IVT_OPTION:
+		return "actions_intent_OPTION"
+	case IVT_LINK:
+		return "actions_intent_LINK"
+	case IVT_DELIVERY_ADDRESS:
+		return "actions_intent_DELIVERY_ADDRESS"
+	case IVT_DATETIME:
+		return "actions_intent_DATETIME"
+	case IVT_CONFIRMATION:
+		return "actions_intent_CONFIRMATION"
+	}
+	return ""
+}
+
+func (ivt IntentValueType) Context() string {
+	switch ivt {
+	case IVT_SIGN_IN:
+		return "actions_intent_sign_in"
+	case IVT_PERMISSION:
+		return "actions_intent_permission"
+	case IVT_OPTION:
+		return "actions_intent_option"
+	case IVT_LINK:
+		return "actions_intent_link"
+	case IVT_DELIVERY_ADDRESS:
+		return "actions_intent_delivery_address"
+	case IVT_DATETIME:
+		return "actions_intent_datetime"
+	case IVT_CONFIRMATION:
+		return "actions_intent_confirmation"
+	}
+	return ""
+}
