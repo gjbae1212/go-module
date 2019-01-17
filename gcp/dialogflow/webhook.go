@@ -2,7 +2,6 @@ package gcp_dialogflow
 
 import (
 	"bytes"
-
 	"regexp"
 
 	"fmt"
@@ -13,7 +12,7 @@ import (
 )
 
 var (
-	sessionRegex = regexp.MustCompile("projects/(.+)/agent/sessions/(.+)")
+	sessionRegex = regexp.MustCompile("projects/(.+)/agent(.*)/sessions/(.+)")
 	contextRegex = regexp.MustCompile("projects/(.+)/agent/sessions/(.+)/contexts/(.+)")
 	intentRegex  = regexp.MustCompile("projects/(.+)/agent/intents/(.+)")
 )
@@ -49,13 +48,13 @@ func ParseSession(session string) (projectId, sessionId string, err error) {
 	}
 
 	matches := sessionRegex.FindStringSubmatch(session)
-	if len(matches) == 0 || len(matches) != 3 {
+	if len(matches) == 0 || len(matches) < 3 || len(matches) > 4 {
 		err = gcp.InvalidError.New("webhook ParseSession invalid format")
 		return
 	}
 
 	projectId = matches[1]
-	sessionId = matches[2]
+	sessionId = matches[len(matches)-1]
 	return
 }
 

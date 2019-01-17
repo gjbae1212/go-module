@@ -31,6 +31,12 @@ func TestGenerateAndParseSession(t *testing.T) {
 	assert.NoError(err)
 	assert.Equal(pId, projectId)
 	assert.Equal(sId, sessionId)
+
+	test := "projects/allan/agent/sdfsdfsd/324sd-dsfdsf/--/sessions/abc"
+	pId, sId, err = ParseSession(test)
+	assert.NoError(err)
+	assert.Equal(sId, "abc")
+	assert.Equal(pId, "allan")
 }
 
 func TestGenerateAndParseContext(t *testing.T) {

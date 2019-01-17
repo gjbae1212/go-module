@@ -25,17 +25,17 @@ type Item struct {
 }
 
 type BasicCard struct {
-	Title               string    `json:"title,omitempty"`
-	Subtitle            string    `json:"subtitle,omitempty"`
-	FormattedText       string    `json:"formattedText,omitempty"`
-	Image               *Image    `json:"image,omitempty"`
-	Buttons             []*Button `json:"buttons,omitempty"`
-	ImageDisplayOptions string    `json:"imageDisplayOptions,omitempty"`
+	Title               string              `json:"title,omitempty"`
+	Subtitle            string              `json:"subtitle,omitempty"`
+	FormattedText       string              `json:"formattedText,omitempty"`
+	Image               *Image              `json:"image,omitempty"`
+	Buttons             []*Button           `json:"buttons,omitempty"`
+	ImageDisplayOptions ImageDisplayOptions `json:"imageDisplayOptions,omitempty"`
 }
 
 type CarouselBrowse struct {
 	Items               []*CarouselBrowseItem `json:"items,omitempty"`
-	ImageDisplayOptions string                `json:"imageDisplayOptions,omitempty"`
+	ImageDisplayOptions ImageDisplayOptions   `json:"imageDisplayOptions,omitempty"`
 }
 
 type TableCard struct {
