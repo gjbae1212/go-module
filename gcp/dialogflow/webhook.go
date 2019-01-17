@@ -12,8 +12,8 @@ import (
 )
 
 var (
-	sessionRegex = regexp.MustCompile("projects/(.+)/agent(.*)/sessions/(.+)")
-	contextRegex = regexp.MustCompile("projects/(.+)/agent/sessions/(.+)/contexts/(.+)")
+	sessionRegex = regexp.MustCompile("projects/(.+)/agent/(.+)")
+	contextRegex = regexp.MustCompile("projects/(.+)/agent/(.+)/contexts/(.+)")
 	intentRegex  = regexp.MustCompile("projects/(.+)/agent/intents/(.+)")
 )
 
@@ -24,14 +24,14 @@ func GenerateSession(projectId, sessionId string) (string, error) {
 	if projectId == "" || sessionId == "" {
 		return "", gcp.EmptyError.New("webhook GenerateSession")
 	}
-	return fmt.Sprintf("projects/%s/agent/sessions/%s", projectId, sessionId), nil
+	return fmt.Sprintf("projects/%s/agent/%s", projectId, sessionId), nil
 }
 
 func GenerateContext(projectId, sessionId, contextId string) (string, error) {
 	if projectId == "" || sessionId == "" || contextId == "" {
 		return "", gcp.EmptyError.New("webhook GenerateContext")
 	}
-	return fmt.Sprintf("projects/%s/agent/sessions/%s/contexts/%s", projectId, sessionId, contextId), nil
+	return fmt.Sprintf("projects/%s/agent/%s/contexts/%s", projectId, sessionId, contextId), nil
 }
 
 func GenerateIntent(projectId, intentId string) (string, error) {
@@ -48,7 +48,7 @@ func ParseSession(session string) (projectId, sessionId string, err error) {
 	}
 
 	matches := sessionRegex.FindStringSubmatch(session)
-	if len(matches) == 0 || len(matches) < 3 || len(matches) > 4 {
+	if len(matches) == 0 || len(matches) != 3 {
 		err = gcp.InvalidError.New("webhook ParseSession invalid format")
 		return
 	}
@@ -71,8 +71,8 @@ func ParseContext(context string) (projectId, sessionId string, contextId string
 	}
 
 	projectId = matches[1]
-	sessionId = matches[2]
-	contextId = matches[3]
+	sessionId = matches[len(matches)-2]
+	contextId = matches[len(matches)-1]
 	return
 }
 
