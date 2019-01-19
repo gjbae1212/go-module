@@ -8,15 +8,17 @@ import (
 	dialogflowpb "google.golang.org/genproto/googleapis/cloud/dialogflow/v2"
 )
 
-func TestGetUserByOriginalDetectIntentRequest(t *testing.T) {
+func TestGetUserFromRequest(t *testing.T) {
 	assert := assert.New(t)
-	req := &dialogflowpb.OriginalDetectIntentRequest{}
+	req := &dialogflowpb.WebhookRequest{
+		OriginalDetectIntentRequest: &dialogflowpb.OriginalDetectIntentRequest{},
+	}
 
-	user := GetUserByOriginalDetectIntentRequest(req)
+	user, _ := GetUserFromRequest(req)
 	assert.True(user.IsEmpty())
 
-	req.Payload = &structpb.Struct{}
-	user = GetUserByOriginalDetectIntentRequest(req)
+	req.OriginalDetectIntentRequest.Payload = &structpb.Struct{}
+	user, _ = GetUserFromRequest(req)
 	assert.True(user.IsEmpty())
 
 	inner := &structpb.Struct{
@@ -34,8 +36,8 @@ func TestGetUserByOriginalDetectIntentRequest(t *testing.T) {
 		},
 	}
 
-	req.Payload = payload
-	user = GetUserByOriginalDetectIntentRequest(req)
+	req.OriginalDetectIntentRequest.Payload = payload
+	user, _ = GetUserFromRequest(req)
 	assert.False(user.IsEmpty())
 	assert.Equal(user.UserId, "allan")
 	assert.Equal(user.UserStorage, "data")
