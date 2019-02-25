@@ -14,6 +14,10 @@ func TestFeedly_GetEntryIdsOfStream(t *testing.T) {
 
 	accessToken := os.Getenv("FEEDLY_ACCESS_TOKEN")
 	refreshToken := os.Getenv("FEEDLY_REFRESH_TOKEN")
+	if accessToken == "" || refreshToken == "" {
+		return
+	}
+
 	fly := &Feedly{
 		client:       http.DefaultClient,
 		accessToken:  accessToken,
@@ -33,6 +37,10 @@ func TestFeedly_GetContentOfStream(t *testing.T) {
 
 	accessToken := os.Getenv("FEEDLY_ACCESS_TOKEN")
 	refreshToken := os.Getenv("FEEDLY_REFRESH_TOKEN")
+	if accessToken == "" || refreshToken == "" {
+		return
+	}
+
 	fly := &Feedly{
 		client:       http.DefaultClient,
 		accessToken:  accessToken,
@@ -60,6 +68,7 @@ func TestFeedly_GetContentOfStream(t *testing.T) {
 		"", true, false, 2, 0)
 	assert.NoError(err)
 	spew.Dump(stream)
+
 }
 
 func TestFeedly_SearchContentsOfStream(t *testing.T) {
@@ -67,6 +76,10 @@ func TestFeedly_SearchContentsOfStream(t *testing.T) {
 
 	accessToken := os.Getenv("FEEDLY_ACCESS_TOKEN")
 	refreshToken := os.Getenv("FEEDLY_REFRESH_TOKEN")
+	if accessToken == "" || refreshToken == "" {
+		return
+	}
+
 	fly := &Feedly{
 		client:       http.DefaultClient,
 		accessToken:  accessToken,

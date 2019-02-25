@@ -1,6 +1,7 @@
 package gcp_dialogflow
 
 import (
+	"os"
 	"testing"
 
 	"io/ioutil"
@@ -12,9 +13,12 @@ import (
 
 func TestNewManager(t *testing.T) {
 	assert := assert.New(t)
-
-	// TODO: required jwt path
 	jwtpath := filepath.Join(util.GetModulePath(), "asset", "gcp_jwt.json")
+	_, err := os.Stat(jwtpath)
+	if os.IsNotExist(err) {
+		return
+	}
+
 	jwt, err := ioutil.ReadFile(jwtpath)
 	assert.NoError(err)
 	m, err := NewManager(jwt)

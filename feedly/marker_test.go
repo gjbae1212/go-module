@@ -15,6 +15,10 @@ func TestFeedly_GetUnreads(t *testing.T) {
 
 	accessToken := os.Getenv("FEEDLY_ACCESS_TOKEN")
 	refreshToken := os.Getenv("FEEDLY_REFRESH_TOKEN")
+	if accessToken == "" || refreshToken == "" {
+		return
+	}
+
 	fly := &Feedly{
 		client:       http.DefaultClient,
 		accessToken:  accessToken,
@@ -25,6 +29,7 @@ func TestFeedly_GetUnreads(t *testing.T) {
 	unread, err := fly.GetUnreads("", false, 0)
 	assert.NoError(err)
 	spew.Dump(unread)
+
 }
 
 func TestFeedly_MarkEntriesAsAction(t *testing.T) {
@@ -32,6 +37,10 @@ func TestFeedly_MarkEntriesAsAction(t *testing.T) {
 
 	accessToken := os.Getenv("FEEDLY_ACCESS_TOKEN")
 	refreshToken := os.Getenv("FEEDLY_REFRESH_TOKEN")
+	if accessToken == "" || refreshToken == "" {
+		return
+	}
+
 	fly := &Feedly{
 		client:       http.DefaultClient,
 		accessToken:  accessToken,
@@ -55,4 +64,5 @@ func TestFeedly_MarkEntriesAsAction(t *testing.T) {
 			assert.NoError(err)
 		}
 	}
+
 }

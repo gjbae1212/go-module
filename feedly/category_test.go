@@ -15,6 +15,9 @@ func TestFeedly_GetCategories(t *testing.T) {
 
 	accessToken := os.Getenv("FEEDLY_ACCESS_TOKEN")
 	refreshToken := os.Getenv("FEEDLY_REFRESH_TOKEN")
+	if accessToken == "" || refreshToken == "" {
+		return
+	}
 	fly := &Feedly{
 		client:       http.DefaultClient,
 		accessToken:  accessToken,
@@ -32,6 +35,9 @@ func TestFeedly_GetCategory(t *testing.T) {
 
 	accessToken := os.Getenv("FEEDLY_ACCESS_TOKEN")
 	refreshToken := os.Getenv("FEEDLY_REFRESH_TOKEN")
+	if accessToken == "" || refreshToken == "" {
+		return
+	}
 	fly := &Feedly{
 		client:       http.DefaultClient,
 		accessToken:  accessToken,
@@ -46,4 +52,5 @@ func TestFeedly_GetCategory(t *testing.T) {
 		assert.NoError(err)
 		spew.Dump(ca)
 	}
+
 }

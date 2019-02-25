@@ -2,6 +2,7 @@ package gcp_dialogflow
 
 import (
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -14,14 +15,17 @@ import (
 func TestDialogFlow_DetectIntent(t *testing.T) {
 	assert := assert.New(t)
 
-	// TODO: required jwt path
 	jwtpath := filepath.Join(util.GetModulePath(), "asset", "gcp_jwt.json")
+	_, err := os.Stat(jwtpath)
+	if os.IsNotExist(err) {
+		return
+	}
+
 	jwt, err := ioutil.ReadFile(jwtpath)
 	assert.NoError(err)
 	m, err := NewManager(jwt)
 	assert.NoError(err)
-
-	_  = m
+	_ = m
 
 	//req := &Request{Message: "맛집 알려줘", Username: "allan"}
 	//response, err := m.(*DialogFlow).DetectIntent(context.Background(), req)

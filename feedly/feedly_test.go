@@ -16,6 +16,10 @@ func TestFeedly_Request(t *testing.T) {
 
 	accessToken := os.Getenv("FEEDLY_ACCESS_TOKEN")
 	refreshToken := os.Getenv("FEEDLY_REFRESH_TOKEN")
+	if accessToken == "" || refreshToken == "" {
+		return
+	}
+
 	fly := &Feedly{
 		client:       http.DefaultClient,
 		accessToken:  accessToken,
@@ -33,6 +37,7 @@ func TestFeedly_Request(t *testing.T) {
 	err = fly.renewAccessToken(accessToken)
 	assert.NoError(err)
 	assert.NotEqual(accessToken, fly.accessToken)
+
 }
 
 func TestFeedly_ID(t *testing.T) {
@@ -40,6 +45,10 @@ func TestFeedly_ID(t *testing.T) {
 
 	accessToken := os.Getenv("FEEDLY_ACCESS_TOKEN")
 	refreshToken := os.Getenv("FEEDLY_REFRESH_TOKEN")
+	if accessToken == "" || refreshToken == "" {
+		return
+	}
+
 	fly := &Feedly{
 		client:       http.DefaultClient,
 		accessToken:  accessToken,
