@@ -17,7 +17,7 @@ func TestLoad(t *testing.T) {
 		return
 	}
 
-	err := Load(sentryDSN)
+	err := Load(sentryDSN, 10)
 	assert.NoError(err)
 }
 
@@ -28,12 +28,13 @@ func TestRaiseSentry(t *testing.T) {
 		return
 	}
 
-	err := Load(sentryDSN)
+	err := Load(sentryDSN, defaultStackLength)
 	assert.NoError(err)
-	RaiseSentry(fmt.Errorf("test error without request"), true)
-	RaiseSentry(fmt.Errorf("test error without request"), false)
+	packet1 := MakePacket(fmt.Errorf("test error without request"), true)
+	Raise(packet1, nil)
+
 	req := httptest.NewRequest("GET", "http://localhost", nil)
-	RaiseSentryWithRequest(fmt.Errorf("test error with request"), req, true)
-	RaiseSentryWithRequest(fmt.Errorf("test error with request"), req, false)
+	packet2 := MakePacketWithRequest(fmt.Errorf("test error with request"), req, true)
+	Raise(packet2, nil)
 	time.Sleep(3 * time.Second)
 }
