@@ -44,8 +44,8 @@ func MakePacketWithRequest(err error, req *http.Request, stack bool) *raven.Pack
 	packet := raven.NewPacket(message, raven.NewHttp(req))
 	if stack {
 		trace := make([]byte, stackLength)
-		runtime.Stack(trace, false)
-		packet.Extra["Stack"] = string(trace)
+		length := runtime.Stack(trace, false)
+		packet.Extra["Stack"] = string(trace[:length])
 	}
 	return packet
 }
