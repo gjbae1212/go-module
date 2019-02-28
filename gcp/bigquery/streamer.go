@@ -73,7 +73,7 @@ func (st *streamer) AddRow(ctx context.Context, schema *TableSchema, row bigquer
 	var msgs []*Message
 	msgs = append(msgs, &Message{
 		DatasetId: st.cfg.datasetId,
-		tableId:   tableId,
+		TableId:   tableId,
 		Data:      row,
 	})
 	return st.async.addQueue(ctx, msgs)

@@ -26,7 +26,7 @@ type Config struct {
 type TableSchema struct {
 	Prefix string          // bigquery table prefix
 	Schema bigquery.Schema // bigquery table schema
-	Period      TablePeriod     // TablePeriod
+	Period TablePeriod     // TablePeriod
 }
 
 func NewConfig(projectId, datasetId string, jwtbys []byte, schemas []*TableSchema) (*Config, error) {

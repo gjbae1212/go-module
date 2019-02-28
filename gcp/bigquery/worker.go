@@ -20,7 +20,7 @@ type (
 
 	Message struct {
 		DatasetId string
-		tableId   string
+		TableId   string
 		Data      bigquery.ValueSaver
 	}
 
@@ -122,7 +122,7 @@ func (w *Worker) insert(msg *Message) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 	if err := w.client.Dataset(msg.DatasetId).Table(
-		msg.tableId).Inserter().Put(ctx, msg.Data); err != nil {
+		msg.TableId).Inserter().Put(ctx, msg.Data); err != nil {
 		return errors.Wrap(err, "[err] insert")
 	}
 	return nil
