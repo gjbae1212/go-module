@@ -4,16 +4,13 @@ import (
 	"os"
 	"testing"
 
-	"io/ioutil"
-	"path/filepath"
-
-	"github.com/gjbae1212/go-module/util"
 	"github.com/stretchr/testify/assert"
+	"io/ioutil"
 )
 
 func TestNewManager(t *testing.T) {
 	assert := assert.New(t)
-	jwtpath := filepath.Join(util.GetModulePath(), "asset", "gcp_jwt.json")
+	jwtpath := os.Getenv("GCP_JWT")
 	_, err := os.Stat(jwtpath)
 	if os.IsNotExist(err) {
 		return

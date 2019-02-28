@@ -11,13 +11,14 @@ require (
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/golang/protobuf v1.2.0
 	github.com/gomodule/redigo v2.0.0+incompatible
+	github.com/google/martian v2.1.0+incompatible // indirect
 	github.com/googleapis/gax-go v2.0.2+incompatible // indirect
 	github.com/joomcode/errorx v0.1.0
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/labstack/gommon v0.2.8
 	github.com/mattn/go-colorable v0.1.1 // indirect
 	github.com/mikesmitty/edkey v0.0.0-20170222072505-3356ea4e686a
-	github.com/pkg/errors v0.8.1 // indirect
+	github.com/pkg/errors v0.8.1
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/satori/go.uuid v1.2.0
 	github.com/stretchr/testify v1.2.2

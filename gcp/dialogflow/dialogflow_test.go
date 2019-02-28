@@ -3,19 +3,17 @@ package gcp_dialogflow
 import (
 	"io/ioutil"
 	"os"
-	"path/filepath"
 	"testing"
 
 	"fmt"
 
-	"github.com/gjbae1212/go-module/util"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestDialogFlow_DetectIntent(t *testing.T) {
 	assert := assert.New(t)
 
-	jwtpath := filepath.Join(util.GetModulePath(), "asset", "gcp_jwt.json")
+	jwtpath := os.Getenv("GCP_JWT")
 	_, err := os.Stat(jwtpath)
 	if os.IsNotExist(err) {
 		return
