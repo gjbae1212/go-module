@@ -3,10 +3,11 @@ package util
 import "time"
 
 var (
-	maxTime      = time.Unix(0, (1<<63)-1)
-	utcLayout    = "2006-01-02 15:04:05"
-	dailyLayout  = "20060102"
-	hourlyLayout = "2006010215"
+	maxTime       = time.Unix(0, (1<<63)-1)
+	utcLayout     = "2006-01-02 15:04:05"
+	monthlyLayout = "200601"
+	dailyLayout   = "20060102"
+	hourlyLayout  = "2006010215"
 )
 
 func TimestampByMaxTime() int64 {
@@ -23,6 +24,18 @@ func StringToTime(s string) time.Time {
 
 func TimeToString(t time.Time) string {
 	return t.Format(utcLayout)
+}
+
+func MonthlyStringToTime(s string) time.Time {
+	t, err := time.Parse(monthlyLayout, s)
+	if err != nil {
+		return time.Time{}
+	}
+	return t
+}
+
+func TimeToMonthlyStringFormat(t time.Time) string {
+	return t.Format(monthlyLayout)
 }
 
 func DailyStringToTime(s string) time.Time {

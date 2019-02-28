@@ -47,4 +47,17 @@ func TestTime(t *testing.T) {
 	assert.Equal(tt.Hour(), tt4.Hour())
 	assert.Equal(0, tt4.Minute())
 	assert.Equal(0, tt4.Second())
+
+	ss4 := TimeToMonthlyStringFormat(tt)
+	compare4 := fmt.Sprintf("%d%02d", tt.Year(), tt.Month())
+	assert.Equal(compare4, ss4)
+
+	tt5 := MonthlyStringToTime(ss4)
+	assert.Equal(tt.Year(), tt5.Year())
+	assert.Equal(tt.Month(), tt5.Month())
+	assert.Equal(1, tt5.Day())
+	assert.Equal(0, tt5.Hour())
+	assert.Equal(0, tt5.Minute())
+	assert.Equal(0, tt5.Second())
+
 }
