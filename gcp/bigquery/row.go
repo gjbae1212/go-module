@@ -9,5 +9,5 @@ import (
 type Row interface {
 	Save() (row map[string]bigquery.Value, insertID string, err error)
 	Schema() (schema *TableSchema, err error)
-	CreatedAt() time.Time
+	PublishedAt() time.Time
 }
