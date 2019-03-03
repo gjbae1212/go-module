@@ -65,7 +65,7 @@ func NewStreamer(cfg *Config, errFunc ErrorHandler) (Streamer, error) {
 }
 
 func (st *streamer) AddRow(ctx context.Context, row Row) error {
-	if row == nil || row.CreatedAt().IsZero() {
+	if row == nil || row.PublishedAt().IsZero() {
 		return fmt.Errorf("[err] AddRow empty params")
 	}
 
@@ -74,7 +74,7 @@ func (st *streamer) AddRow(ctx context.Context, row Row) error {
 		return errors.Wrap(err, "[err] AddRow unknown schema")
 	}
 
-	tableId := st.getTableId(schema, row.CreatedAt())
+	tableId := st.getTableId(schema, row.PublishedAt())
 	var msgs []*Message
 	msgs = append(msgs, &Message{
 		DatasetId: schema.DatasetId,

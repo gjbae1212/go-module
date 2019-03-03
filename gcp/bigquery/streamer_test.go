@@ -28,7 +28,7 @@ func (i *TestItem) Save() (map[string]bigquery.Value, string, error) {
 }
 
 func (i *TestItem) Schema() (*TableSchema, error) {
-	schema, err := bigquery.InferSchema(TestItem{})
+	schema, err := bigquery.InferSchema(i)
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +40,7 @@ func (i *TestItem) Schema() (*TableSchema, error) {
 	}, nil
 }
 
-func (i *TestItem) CreatedAt() time.Time {
+func (i *TestItem) PublishedAt() time.Time {
 	return time.Now().Add(time.Hour * 24)
 }
 
