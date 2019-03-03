@@ -21,7 +21,7 @@ type (
 	Message struct {
 		DatasetId string
 		TableId   string
-		Data      bigquery.ValueSaver
+		Data      Row
 	}
 
 	// dispatcher

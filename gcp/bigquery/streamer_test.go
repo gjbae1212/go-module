@@ -27,6 +27,22 @@ func (i *TestItem) Save() (map[string]bigquery.Value, string, error) {
 	}, fmt.Sprintf("%d", i.UserId.Int64), nil
 }
 
+func (i *TestItem) Schema() (*TableSchema, error) {
+	schema, err := bigquery.InferSchema(TestItem{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &TableSchema{
+		Prefix: "test_table_",
+		Schema: schema,
+	}, nil
+}
+
+func (i *TestItem) CreatedAt() time.Time {
+	return time.Now().Add(time.Hour * 24)
+}
+
 func TestTicker(t *testing.T) {
 	assert := assert.New(t)
 
@@ -77,7 +93,7 @@ func TestAsync(t *testing.T) {
 	daily.async.start()
 
 	item := &TestItem{UserId: bigquery.NullInt64{Int64: 1}}
-	err = daily.AddRow(context.Background(), cfg.schemas[0], item, time.Now().Add(time.Hour*24))
+	err = daily.AddRow(context.Background(), item)
 	assert.NoError(err)
 	time.Sleep(5 * time.Second)
 }
@@ -105,18 +121,18 @@ func TestStreamer_AddRow(t *testing.T) {
 	assert.NoError(err)
 	daily.async = dispatcher
 
-	err = daily.AddRow(context.Background(), nil, nil, time.Time{})
+	err = daily.AddRow(context.Background(), nil)
 	assert.Error(err)
 
 	item := &TestItem{UserId: bigquery.NullInt64{Int64: 1}}
 	for i := 0; i < 1000; i++ {
-		err = daily.AddRow(context.Background(), cfg.schemas[0], item, time.Now().Add(time.Hour*24))
+		err = daily.AddRow(context.Background(), item)
 		assert.NoError(err)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
-	err = daily.AddRow(ctx, cfg.schemas[0], item, time.Now().Add(time.Hour*24))
+	err = daily.AddRow(ctx, item)
 	assert.Error(err)
 }
 

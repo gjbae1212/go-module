@@ -64,12 +64,17 @@ func NewStreamer(cfg *Config, errFunc ErrorHandler) (Streamer, error) {
 	return st, nil
 }
 
-func (st *streamer) AddRow(ctx context.Context, schema *TableSchema, row bigquery.ValueSaver, createdAt time.Time) error {
-	if schema == nil || row == nil || createdAt.IsZero() {
+func (st *streamer) AddRow(ctx context.Context, row Row) error {
+	if row == nil || row.CreatedAt().IsZero() {
 		return fmt.Errorf("[err] AddRow empty params")
 	}
 
-	tableId := st.getTableId(schema, createdAt)
+	schema, err := row.Schema()
+	if err != nil {
+		return errors.Wrap(err, "[err] AddRow unknown schema")
+	}
+
+	tableId := st.getTableId(schema, row.CreatedAt())
 	var msgs []*Message
 	msgs = append(msgs, &Message{
 		DatasetId: st.cfg.datasetId,
