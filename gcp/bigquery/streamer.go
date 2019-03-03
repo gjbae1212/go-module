@@ -77,7 +77,7 @@ func (st *streamer) AddRow(ctx context.Context, row Row) error {
 	tableId := st.getTableId(schema, row.CreatedAt())
 	var msgs []*Message
 	msgs = append(msgs, &Message{
-		DatasetId: st.cfg.datasetId,
+		DatasetId: schema.DatasetId,
 		TableId:   tableId,
 		Data:      row,
 	})
@@ -129,7 +129,7 @@ func (st *streamer) createTable() error {
 	for _, schema := range st.cfg.schemas {
 		// 내일 테이블을 미리 생성
 		tableId := st.getTableId(schema, time.Now().Add(24*time.Hour))
-		table := st.client.Dataset(st.cfg.datasetId).Table(tableId)
+		table := st.client.Dataset(schema.DatasetId).Table(tableId)
 
 		// table 없다면 error
 		md, err := table.Metadata(ctx)

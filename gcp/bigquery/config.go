@@ -17,20 +17,19 @@ const (
 
 type Config struct {
 	projectId string         // gcp project
-	datasetId string         // biquery dataset id
 	jwt       *jwt.Config    // gcp jwt config
 	schemas   []*TableSchema // table schemas
-
 }
 
 type TableSchema struct {
-	Prefix string          // bigquery table prefix
-	Schema bigquery.Schema // bigquery table schema
-	Period TablePeriod     // TablePeriod
+	DatasetId string          // bigquery datasetId
+	Prefix    string          // bigquery table prefix
+	Schema    bigquery.Schema // bigquery table schema
+	Period    TablePeriod     // TablePeriod
 }
 
-func NewConfig(projectId, datasetId string, jwtbys []byte, schemas []*TableSchema) (*Config, error) {
-	if len(jwtbys) == 0 || projectId == "" || datasetId == "" {
+func NewConfig(projectId string, jwtbys []byte, schemas []*TableSchema) (*Config, error) {
+	if len(jwtbys) == 0 || projectId == "" || schemas == nil ||  len(schemas) == 0 {
 		return nil, fmt.Errorf("[err] NewConfig empty params")
 	}
 
@@ -41,6 +40,5 @@ func NewConfig(projectId, datasetId string, jwtbys []byte, schemas []*TableSchem
 
 	return &Config{
 		projectId: projectId,
-		datasetId: datasetId,
 		jwt:       jwt, schemas: schemas}, nil
 }

@@ -34,8 +34,9 @@ func (i *TestItem) Schema() (*TableSchema, error) {
 	}
 
 	return &TableSchema{
-		Prefix: "test_table_",
-		Schema: schema,
+		DatasetId: "test_dataset",
+		Prefix:    "test_table_",
+		Schema:    schema,
 	}, nil
 }
 
@@ -180,8 +181,9 @@ func testconfig() *Config {
 		return nil
 	}
 	ss := &TableSchema{
-		Prefix: "test_table_",
-		Schema: schema,
+		DatasetId: datasetId,
+		Prefix:    "test_table_",
+		Schema:    schema,
 	}
 
 	jwt, err := ioutil.ReadFile(jwtpath)
@@ -189,7 +191,7 @@ func testconfig() *Config {
 		return nil
 	}
 
-	cfg, err := NewConfig(projectId, datasetId, jwt, []*TableSchema{ss})
+	cfg, err := NewConfig(projectId, jwt, []*TableSchema{ss})
 	if err != nil {
 		return nil
 	}

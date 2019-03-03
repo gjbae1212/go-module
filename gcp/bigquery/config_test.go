@@ -13,7 +13,7 @@ import (
 func TestNewConfig(t *testing.T) {
 	assert := assert.New(t)
 
-	_, err := NewConfig("", "", nil, nil)
+	_, err := NewConfig("", nil, nil)
 	assert.Error(err)
 
 	jwtpath := os.Getenv("GCP_JWT")
@@ -29,10 +29,11 @@ func TestNewConfig(t *testing.T) {
 	assert.NoError(err)
 
 	schema := &TableSchema{
-		Prefix: "test_table_",
-		Schema: bigquery.Schema{},
+		DatasetId: datasetId,
+		Prefix:    "test_table_",
+		Schema:    bigquery.Schema{},
 	}
 
-	_, err = NewConfig(projectId, datasetId, jwt, []*TableSchema{schema})
+	_, err = NewConfig(projectId, jwt, []*TableSchema{schema})
 	assert.NoError(err)
 }
