@@ -33,8 +33,8 @@ func MakePacket(err error, stack bool) *raven.Packet {
 	packet := raven.NewPacket(message)
 	if stack {
 		trace := make([]byte, stackLength)
-		runtime.Stack(trace, false)
-		packet.Extra["Stack"] = string(trace)
+		length := runtime.Stack(trace, false)
+		packet.Extra["Stack"] = string(trace[:length])
 	}
 	return packet
 }
