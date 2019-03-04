@@ -16,7 +16,9 @@ import (
 )
 
 type (
-	Streamer interface{}
+	Streamer interface {
+		AddRow(ctx context.Context, row Row) error
+	}
 
 	streamer struct {
 		cfg    *Config
