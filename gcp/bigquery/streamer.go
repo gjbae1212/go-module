@@ -48,7 +48,7 @@ func NewStreamer(cfg *Config, errFunc ErrorHandler, queueSize int) (Streamer, er
 		errFunc = func(err error) {}
 	}
 
-	if queueSize < 0 {
+	if queueSize <= 0 {
 		queueSize = defaultQueueSize
 	}
 
