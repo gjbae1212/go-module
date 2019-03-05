@@ -88,7 +88,7 @@ func TestAsync(t *testing.T) {
 	assert.NoError(err)
 	daily.client = client
 
-	dispatcher, err := newWorkerDispatcher(daily.cfg, daily.errFunc, 5)
+	dispatcher, err := newWorkerDispatcher(daily.cfg, daily.errFunc, 5, 1000)
 	assert.NoError(err)
 	daily.async = dispatcher
 	daily.async.start()
@@ -118,7 +118,7 @@ func TestStreamer_AddRow(t *testing.T) {
 	assert.NoError(err)
 	daily.client = client
 
-	dispatcher, err := newWorkerDispatcher(daily.cfg, daily.errFunc, 5)
+	dispatcher, err := newWorkerDispatcher(daily.cfg, daily.errFunc, 5, 1000)
 	assert.NoError(err)
 	daily.async = dispatcher
 

@@ -15,6 +15,10 @@ import (
 	"cloud.google.com/go/bigquery"
 )
 
+const (
+	defaultQueueSize = 1000
+)
+
 type (
 	Streamer interface {
 		AddRow(ctx context.Context, row Row) error
@@ -35,7 +39,7 @@ type (
 	ErrorHandler func(error)
 )
 
-func NewStreamer(cfg *Config, errFunc ErrorHandler) (Streamer, error) {
+func NewStreamer(cfg *Config, errFunc ErrorHandler, queueSize int) (Streamer, error) {
 	if cfg == nil {
 		return nil, fmt.Errorf("[err] NewStreamerWithst empty params")
 	}
@@ -43,6 +47,11 @@ func NewStreamer(cfg *Config, errFunc ErrorHandler) (Streamer, error) {
 	if errFunc == nil {
 		errFunc = func(err error) {}
 	}
+
+	if queueSize < 0 {
+		queueSize = defaultQueueSize
+	}
+
 	st := &streamer{cfg: cfg, errFunc: errFunc}
 
 	// client 생성
@@ -54,7 +63,7 @@ func NewStreamer(cfg *Config, errFunc ErrorHandler) (Streamer, error) {
 	}
 	st.client = client
 
-	dispatcher, err := newWorkerDispatcher(st.cfg, st.errFunc, 10)
+	dispatcher, err := newWorkerDispatcher(st.cfg, st.errFunc, 10, queueSize)
 	if err != nil {
 		return nil, errors.Wrap(err, "[err]  NewStreamer fail dispatcher")
 	}

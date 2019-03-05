@@ -23,7 +23,7 @@ func TestNewWorkerDispatcher(t *testing.T) {
 		log.Println(err)
 	}
 
-	dispatcher, err := newWorkerDispatcher(cfg, errFunc, 2)
+	dispatcher, err := newWorkerDispatcher(cfg, errFunc, 2, 1000)
 	assert.NoError(err)
 	assert.Len(dispatcher.workers, 2)
 

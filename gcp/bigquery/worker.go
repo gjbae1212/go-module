@@ -144,7 +144,7 @@ func newWorker(cfg *Config, fn ErrorHandler, pool chan chan Job) (*Worker, error
 	}, nil
 }
 
-func newWorkerDispatcher(cfg *Config, fn ErrorHandler, workerCount int) (*WorkerDispatcher, error) {
+func newWorkerDispatcher(cfg *Config, fn ErrorHandler, workerCount, queueSize int) (*WorkerDispatcher, error) {
 	if cfg == nil || fn == nil || workerCount == 0 {
 		return nil, fmt.Errorf("[err] newWorkerDispatcher empty params")
 	}
@@ -160,7 +160,7 @@ func newWorkerDispatcher(cfg *Config, fn ErrorHandler, workerCount int) (*Worker
 	}
 
 	return &WorkerDispatcher{
-		jobQueue:   make(chan Job, 1000), // max queue 1000
+		jobQueue:   make(chan Job, queueSize),
 		workerPool: workerPool,
 		workers:    workers,
 		quit:       make(chan bool),
