@@ -39,7 +39,7 @@ type (
 	ErrorHandler func(error)
 )
 
-func NewStreamer(cfg *Config, errFunc ErrorHandler, queueSize int) (Streamer, error) {
+func NewStreamer(cfg *Config, errFunc ErrorHandler, workerSize, queueSize int) (Streamer, error) {
 	if cfg == nil {
 		return nil, fmt.Errorf("[err] NewStreamerWithst empty params")
 	}
@@ -63,7 +63,7 @@ func NewStreamer(cfg *Config, errFunc ErrorHandler, queueSize int) (Streamer, er
 	}
 	st.client = client
 
-	dispatcher, err := newWorkerDispatcher(st.cfg, st.errFunc, 10, queueSize)
+	dispatcher, err := newWorkerDispatcher(st.cfg, st.errFunc, workerSize, queueSize)
 	if err != nil {
 		return nil, errors.Wrap(err, "[err]  NewStreamer fail dispatcher")
 	}
