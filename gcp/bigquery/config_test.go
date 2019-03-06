@@ -7,13 +7,15 @@ import (
 
 	"cloud.google.com/go/bigquery"
 
+	"time"
+
 	"github.com/stretchr/testify/assert"
 )
 
 func TestNewConfig(t *testing.T) {
 	assert := assert.New(t)
 
-	_, err := NewConfig("", nil, nil)
+	_, err := NewConfig("", nil, nil, 0, 0, 0, time.Second)
 	assert.Error(err)
 
 	jwtpath := os.Getenv("GCP_JWT")
@@ -34,6 +36,10 @@ func TestNewConfig(t *testing.T) {
 		Schema:    bigquery.Schema{},
 	}
 
-	_, err = NewConfig(projectId, jwt, []*TableSchema{schema})
+	c, err := NewConfig(projectId, jwt, []*TableSchema{schema}, 0, 0, 0, time.Second)
 	assert.NoError(err)
+	assert.Equal(defaultQueueSize, c.queueSize)
+	assert.Equal(defaultWorkerSize, c.workerSize)
+	assert.Equal(defaultWorkerStack, c.workerStack)
+	assert.Equal(time.Second, c.workerDelay)
 }

@@ -15,7 +15,7 @@ type (
 
 	// message
 	Job struct {
-		Msgs []*Message
+		Msg *Message
 	}
 
 	Message struct {
@@ -38,19 +38,22 @@ type (
 		client     *bigquery.Client
 		workerPool chan chan Job
 		jobChannel chan Job
+		jobs       []Job
+		maxStack   int
+		delay      time.Duration
 		quit       chan bool
 		errFunc    ErrorHandler
 	}
 )
 
-func (d *WorkerDispatcher) addQueue(ctx context.Context, msgs []*Message) error {
-	if ctx == nil || len(msgs) == 0 {
+func (d *WorkerDispatcher) addQueue(ctx context.Context, msg *Message) error {
+	if ctx == nil || msg == nil {
 		return fmt.Errorf("[err] AddQueue empty params")
 	}
 
 	// check context timeout
 	select {
-	case d.jobQueue <- Job{Msgs: msgs}:
+	case d.jobQueue <- Job{Msg: msg}:
 	case <-ctx.Done():
 		return fmt.Errorf("[err] AddQueue timeout")
 	}
@@ -65,10 +68,10 @@ func (wd *WorkerDispatcher) start() {
 }
 
 func (wd *WorkerDispatcher) stop() {
-	wd.quit <- true
 	for _, worker := range wd.workers {
 		worker.stop()
 	}
+	wd.quit <- true
 }
 
 func (wd *WorkerDispatcher) dispatcher() {
@@ -81,11 +84,13 @@ func (wd *WorkerDispatcher) dispatcher() {
 	for {
 		select {
 		case job := <-wd.jobQueue:
-			go func(job Job) {
-				workerJobChannel := <-wd.workerPool
-				workerJobChannel <- job
-			}(job)
+			workerJobChannel := <-wd.workerPool
+			workerJobChannel <- job
 		case <-wd.quit:
+			// worker 다 제거
+			for len(wd.workerPool) > 0 {
+				<-wd.workerPool
+			}
 			return
 		}
 	}
@@ -99,16 +104,39 @@ func (w *Worker) start() {
 		}
 	}()
 
+	// worker ready
+	w.workerPool <- w.jobChannel
 	for {
-		w.workerPool <- w.jobChannel
 		select {
-		case job := <-w.jobChannel:
-			for _, msg := range job.Msgs {
-				if err := w.insert(msg); err != nil {
+		case job := <-w.jobChannel: // job channel 에 job 이 들어 왔을때
+			w.enqueue(job)
+			if len(w.jobs) < w.maxStack {
+				// worker ready
+				w.workerPool <- w.jobChannel
+				continue
+			}
+
+			// insert
+			if errs := w.insertAll(); len(errs) > 0 {
+				for _, err := range errs {
 					w.errFunc(err)
 				}
 			}
-		case <-w.quit:
+
+			// worker ready
+			w.workerPool <- w.jobChannel
+		case <-time.After(w.delay): // delay 기간 동안 대기
+			if errs := w.insertAll(); len(errs) > 0 {
+				for _, err := range errs {
+					w.errFunc(err)
+				}
+			}
+		case <-w.quit: // 종료시
+			if errs := w.insertAll(); len(errs) > 0 {
+				for _, err := range errs {
+					w.errFunc(err)
+				}
+			}
 			return
 		}
 	}
@@ -116,6 +144,41 @@ func (w *Worker) start() {
 
 func (w *Worker) stop() {
 	w.quit <- true
+}
+
+func (w *Worker) enqueue(job Job) {
+	w.jobs = append(w.jobs, job)
+}
+
+func (w *Worker) insertAll() []error {
+	var errs []error
+	if len(w.jobs) == 0 {
+		return errs
+	}
+
+	// wait max 1 minute
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
+	defer cancel()
+	defer func() { w.jobs = w.jobs[:0] }()
+
+	categories := make(map[string]map[string][]Row)
+	for _, job := range w.jobs {
+		if _, ok := categories[job.Msg.DatasetId]; !ok {
+			categories[job.Msg.DatasetId] = make(map[string][]Row)
+		}
+		categories[job.Msg.DatasetId][job.Msg.TableId] = append(categories[job.Msg.DatasetId][job.Msg.TableId], job.Msg.Data)
+	}
+
+	for datasetId, m := range categories {
+		for tableId, rows := range m {
+			if err := w.client.Dataset(datasetId).Table(
+				tableId).Inserter().Put(ctx, rows); err != nil {
+				errs = append(errs, err)
+			}
+		}
+	}
+
+	return errs
 }
 
 func (w *Worker) insert(msg *Message) error {
@@ -138,20 +201,23 @@ func newWorker(cfg *Config, fn ErrorHandler, pool chan chan Job) (*Worker, error
 	return &Worker{
 		workerPool: pool,
 		jobChannel: make(chan Job),
+		jobs:       []Job{},
+		maxStack:   cfg.workerStack,
+		delay:      cfg.workerDelay,
 		client:     client,
 		errFunc:    fn,
 		quit:       make(chan bool),
 	}, nil
 }
 
-func newWorkerDispatcher(cfg *Config, fn ErrorHandler, workerCount, queueSize int) (*WorkerDispatcher, error) {
-	if cfg == nil || fn == nil || workerCount == 0 {
+func newWorkerDispatcher(cfg *Config, fn ErrorHandler) (*WorkerDispatcher, error) {
+	if cfg == nil || fn == nil {
 		return nil, fmt.Errorf("[err] newWorkerDispatcher empty params")
 	}
 
-	workerPool := make(chan chan Job, workerCount)
+	workerPool := make(chan chan Job, cfg.workerSize)
 	var workers []*Worker
-	for i := 0; i < workerCount; i++ {
+	for i := 0; i < cfg.workerSize; i++ {
 		worker, err := newWorker(cfg, fn, workerPool)
 		if err != nil {
 			return nil, errors.Wrap(err, "[err] newWorkerDispatcher newWorkerDispatcher fail")
@@ -160,7 +226,7 @@ func newWorkerDispatcher(cfg *Config, fn ErrorHandler, workerCount, queueSize in
 	}
 
 	return &WorkerDispatcher{
-		jobQueue:   make(chan Job, queueSize),
+		jobQueue:   make(chan Job, cfg.queueSize),
 		workerPool: workerPool,
 		workers:    workers,
 		quit:       make(chan bool),

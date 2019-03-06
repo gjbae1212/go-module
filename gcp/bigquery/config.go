@@ -3,6 +3,8 @@ package bigquery
 import (
 	"fmt"
 
+	"time"
+
 	"cloud.google.com/go/bigquery"
 	"golang.org/x/oauth2/google"
 	"golang.org/x/oauth2/jwt"
@@ -11,14 +13,24 @@ import (
 type TablePeriod int
 
 const (
+	defaultQueueSize   = 1000
+	defaultWorkerSize  = 10
+	defaultWorkerStack = 500 // bigquery document recommend size
+)
+
+const (
 	Daily TablePeriod = iota
 	Monthly
 )
 
 type Config struct {
-	projectId string         // gcp project
-	jwt       *jwt.Config    // gcp jwt config
-	schemas   []*TableSchema // table schemas
+	projectId   string         // gcp project
+	jwt         *jwt.Config    // gcp jwt config
+	schemas     []*TableSchema // table schemas
+	queueSize   int            // max queue
+	workerSize  int            // worker count
+	workerStack int            // worker stack size
+	workerDelay time.Duration  // worker insert wait duration
 }
 
 type TableSchema struct {
@@ -28,9 +40,21 @@ type TableSchema struct {
 	Period    TablePeriod     // TablePeriod
 }
 
-func NewConfig(projectId string, jwtbys []byte, schemas []*TableSchema) (*Config, error) {
-	if len(jwtbys) == 0 || projectId == "" || schemas == nil ||  len(schemas) == 0 {
+func NewConfig(projectId string, jwtbys []byte, schemas []*TableSchema, queueSize, workerSize, workerStack int, workerDelay time.Duration) (*Config, error) {
+	if len(jwtbys) == 0 || projectId == "" || schemas == nil || len(schemas) == 0 {
 		return nil, fmt.Errorf("[err] NewConfig empty params")
+	}
+
+	if queueSize <= 0 {
+		queueSize = defaultQueueSize
+	}
+
+	if workerSize <= 0 {
+		workerSize = defaultWorkerSize
+	}
+
+	if workerStack <= 0 {
+		workerStack = defaultWorkerStack
 	}
 
 	jwt, err := google.JWTConfigFromJSON(jwtbys, bigquery.Scope)
@@ -40,5 +64,10 @@ func NewConfig(projectId string, jwtbys []byte, schemas []*TableSchema) (*Config
 
 	return &Config{
 		projectId: projectId,
-		jwt:       jwt, schemas: schemas}, nil
+		jwt:       jwt, schemas: schemas,
+		queueSize:   queueSize,
+		workerSize:  workerSize,
+		workerStack: workerStack,
+		workerDelay: workerDelay,
+	}, nil
 }

@@ -64,9 +64,9 @@ func TestTicker(t *testing.T) {
 	daily.client = client
 
 	daily.ticker()
-	time.Sleep(2 * time.Second)
+	time.Sleep(3 * time.Second)
 	daily.deleteTicker()
-	time.Sleep(2 * time.Second)
+	time.Sleep(3 * time.Second)
 }
 
 func TestAsync(t *testing.T) {
@@ -88,7 +88,7 @@ func TestAsync(t *testing.T) {
 	assert.NoError(err)
 	daily.client = client
 
-	dispatcher, err := newWorkerDispatcher(daily.cfg, daily.errFunc, 5, 1000)
+	dispatcher, err := newWorkerDispatcher(daily.cfg, daily.errFunc)
 	assert.NoError(err)
 	daily.async = dispatcher
 	daily.async.start()
@@ -118,7 +118,7 @@ func TestStreamer_AddRow(t *testing.T) {
 	assert.NoError(err)
 	daily.client = client
 
-	dispatcher, err := newWorkerDispatcher(daily.cfg, daily.errFunc, 5, 500)
+	dispatcher, err := newWorkerDispatcher(daily.cfg, daily.errFunc)
 	assert.NoError(err)
 	daily.async = dispatcher
 
@@ -126,7 +126,7 @@ func TestStreamer_AddRow(t *testing.T) {
 	assert.Error(err)
 
 	item := &TestItem{UserId: bigquery.NullInt64{Int64: 1}}
-	for i := 0; i < 500; i++ {
+	for i := 0; i < 1000; i++ {
 		err = daily.AddRow(context.Background(), item)
 		assert.NoError(err)
 	}
@@ -191,7 +191,7 @@ func testconfig() *Config {
 		return nil
 	}
 
-	cfg, err := NewConfig(projectId, jwt, []*TableSchema{ss})
+	cfg, err := NewConfig(projectId, jwt, []*TableSchema{ss}, 1000, 2, 500, 1*time.Second)
 	if err != nil {
 		return nil
 	}

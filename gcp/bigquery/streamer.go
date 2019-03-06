@@ -15,10 +15,6 @@ import (
 	"cloud.google.com/go/bigquery"
 )
 
-const (
-	defaultQueueSize = 1000
-)
-
 type (
 	Streamer interface {
 		AddRow(ctx context.Context, row Row) error
@@ -39,17 +35,13 @@ type (
 	ErrorHandler func(error)
 )
 
-func NewStreamer(cfg *Config, errFunc ErrorHandler, workerSize, queueSize int) (Streamer, error) {
+func NewStreamer(cfg *Config, errFunc ErrorHandler) (Streamer, error) {
 	if cfg == nil {
 		return nil, fmt.Errorf("[err] NewStreamerWithst empty params")
 	}
 
 	if errFunc == nil {
 		errFunc = func(err error) {}
-	}
-
-	if queueSize <= 0 {
-		queueSize = defaultQueueSize
 	}
 
 	st := &streamer{cfg: cfg, errFunc: errFunc}
@@ -63,7 +55,7 @@ func NewStreamer(cfg *Config, errFunc ErrorHandler, workerSize, queueSize int) (
 	}
 	st.client = client
 
-	dispatcher, err := newWorkerDispatcher(st.cfg, st.errFunc, workerSize, queueSize)
+	dispatcher, err := newWorkerDispatcher(st.cfg, st.errFunc)
 	if err != nil {
 		return nil, errors.Wrap(err, "[err]  NewStreamer fail dispatcher")
 	}
@@ -85,14 +77,11 @@ func (st *streamer) AddRow(ctx context.Context, row Row) error {
 		return errors.Wrap(err, "[err] AddRow unknown schema")
 	}
 
-	tableId := st.getTableId(schema, row.PublishedAt())
-	var msgs []*Message
-	msgs = append(msgs, &Message{
+	return st.async.addQueue(ctx, &Message{
 		DatasetId: schema.DatasetId,
-		TableId:   tableId,
+		TableId:   st.getTableId(schema, row.PublishedAt()),
 		Data:      row,
 	})
-	return st.async.addQueue(ctx, msgs)
 }
 
 func (st *streamer) ticker() error {
