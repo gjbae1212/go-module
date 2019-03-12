@@ -177,12 +177,13 @@ func (w *Worker) insertAll() []error {
 					for _, err1 := range multiError {
 						for _, err2 := range err1.Errors {
 							fmt.Println(err2)
+							errs = append(errs, err2)
 						}
 					}
 				} else {
 					fmt.Println(err)
+					errs = append(errs, err)
 				}
-				errs = append(errs, err)
 			}
 		}
 	}
