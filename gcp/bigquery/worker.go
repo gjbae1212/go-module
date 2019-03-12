@@ -173,6 +173,15 @@ func (w *Worker) insertAll() []error {
 		for tableId, rows := range m {
 			if err := w.client.Dataset(datasetId).Table(
 				tableId).Inserter().Put(ctx, rows); err != nil {
+				if multiError, ok := err.(bigquery.PutMultiError); ok {
+					for _, err1 := range multiError {
+						for _, err2 := range err1.Errors {
+							fmt.Println(err2)
+						}
+					}
+				} else {
+					fmt.Println(err)
+				}
 				errs = append(errs, err)
 			}
 		}
