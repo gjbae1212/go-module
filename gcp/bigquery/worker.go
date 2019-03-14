@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/gjbae1212/go-module/util"
 	"github.com/pkg/errors"
 	"google.golang.org/api/option"
 
@@ -35,6 +36,7 @@ type (
 
 	// worker
 	Worker struct {
+		id         int
 		client     *bigquery.Client
 		workerPool chan chan Job
 		jobChannel chan Job
@@ -189,6 +191,7 @@ func (w *Worker) insertAll() []error {
 		}
 	}
 
+	fmt.Printf("[bq-worker-%d][%s] insert %d count\n", w.id, util.TimeToString(time.Now()), len(w.jobs))
 	return errs
 }
 
@@ -202,7 +205,7 @@ func (w *Worker) insert(msg *Message) error {
 	return nil
 }
 
-func newWorker(cfg *Config, fn ErrorHandler, pool chan chan Job) (*Worker, error) {
+func newWorker(id int, cfg *Config, fn ErrorHandler, pool chan chan Job) (*Worker, error) {
 	client, err := bigquery.NewClient(context.Background(),
 		cfg.projectId,
 		option.WithTokenSource(cfg.jwt.TokenSource(context.Background())))
@@ -210,6 +213,7 @@ func newWorker(cfg *Config, fn ErrorHandler, pool chan chan Job) (*Worker, error
 		return nil, errors.Wrap(err, "[err]  newWorker fail client")
 	}
 	return &Worker{
+		id:         id,
 		workerPool: pool,
 		jobChannel: make(chan Job),
 		jobs:       []Job{},
@@ -229,7 +233,7 @@ func newWorkerDispatcher(cfg *Config, fn ErrorHandler) (*WorkerDispatcher, error
 	workerPool := make(chan chan Job, cfg.workerSize)
 	var workers []*Worker
 	for i := 0; i < cfg.workerSize; i++ {
-		worker, err := newWorker(cfg, fn, workerPool)
+		worker, err := newWorker(i, cfg, fn, workerPool)
 		if err != nil {
 			return nil, errors.Wrap(err, "[err] newWorkerDispatcher newWorkerDispatcher fail")
 		}

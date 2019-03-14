@@ -137,6 +137,8 @@ func (st *streamer) createTable() error {
 			if err := table.Create(ctx,
 				&bigquery.TableMetadata{Schema: schema.Schema}); err != nil {
 				return errors.Wrap(err, "[err] createTable")
+			} else {
+				fmt.Printf("[bq-table][%s] create %s\n", util.TimeToString(time.Now()), tableId)
 			}
 		}
 	}
