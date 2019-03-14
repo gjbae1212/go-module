@@ -24,6 +24,7 @@ func (i *TestItem) Save() (map[string]bigquery.Value, string, error) {
 	// unique value 넣여믄 중복 값 있으면 다시 넣지 않음.
 	return map[string]bigquery.Value{
 		"UserId": i.UserId.Int64,
+		"Ignore": "ignore?",
 	}, fmt.Sprintf("%d", i.UserId.Int64), nil
 }
 
