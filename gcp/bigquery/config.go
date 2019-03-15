@@ -21,6 +21,7 @@ const (
 const (
 	Daily TablePeriod = iota
 	Monthly
+	Yearly
 )
 
 type Config struct {
@@ -34,15 +35,20 @@ type Config struct {
 }
 
 type TableSchema struct {
-	DatasetId string          // bigquery datasetId
-	Prefix    string          // bigquery table prefix
-	Schema    bigquery.Schema // bigquery table schema
-	Period    TablePeriod     // TablePeriod
+	DatasetId string                  // bigquery datasetId
+	Prefix    string                  // bigquery table prefix
+	Meta      *bigquery.TableMetadata // bigquery table meta
+	Period    TablePeriod             // TablePeriod
 }
 
 func NewConfig(projectId string, jwtbys []byte, schemas []*TableSchema, queueSize, workerSize, workerStack int, workerDelay time.Duration) (*Config, error) {
-	if len(jwtbys) == 0 || projectId == "" || schemas == nil || len(schemas) == 0 {
+	if len(jwtbys) == 0 || projectId == "" || len(schemas) == 0 {
 		return nil, fmt.Errorf("[err] NewConfig empty params")
+	}
+	for _, schema := range schemas {
+		if len(schema.Meta.Schema) == 0 {
+			return nil, fmt.Errorf("[err] NewConfig empty schema")
+		}
 	}
 
 	if queueSize <= 0 {

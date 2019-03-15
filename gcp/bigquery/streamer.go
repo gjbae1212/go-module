@@ -135,7 +135,7 @@ func (st *streamer) createTable() error {
 		md, err := table.Metadata(ctx)
 		if err != nil || md == nil {
 			if err := table.Create(ctx,
-				&bigquery.TableMetadata{Schema: schema.Schema}); err != nil {
+				&bigquery.TableMetadata{Schema: schema.Meta.Schema}); err != nil {
 				return errors.Wrap(err, "[err] createTable")
 			} else {
 				fmt.Printf("[bq-table][%s] create %s\n", util.TimeToString(time.Now()), tableId)
@@ -151,6 +151,8 @@ func (st *streamer) getTableId(schema *TableSchema, t time.Time) string {
 		return schema.Prefix + util.TimeToDailyStringFormat(t)
 	case Monthly:
 		return schema.Prefix + util.TimeToMonthlyStringFormat(t)
+	case Yearly:
+		return schema.Prefix + util.TimeToYearlyStringFormat(t)
 	}
 	return ""
 }

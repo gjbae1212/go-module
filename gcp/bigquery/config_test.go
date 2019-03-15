@@ -33,10 +33,14 @@ func TestNewConfig(t *testing.T) {
 	schema := &TableSchema{
 		DatasetId: datasetId,
 		Prefix:    "test_table_",
-		Schema:    bigquery.Schema{},
+		Meta:      &bigquery.TableMetadata{Schema: bigquery.Schema{}},
 	}
 
 	c, err := NewConfig(projectId, jwt, []*TableSchema{schema}, 0, 0, 0, time.Second)
+	assert.Error(err)
+
+	schema.Meta.Schema = append(schema.Meta.Schema, &bigquery.FieldSchema{})
+	c, err = NewConfig(projectId, jwt, []*TableSchema{schema}, 0, 0, 0, time.Second)
 	assert.NoError(err)
 	assert.Equal(defaultQueueSize, c.queueSize)
 	assert.Equal(defaultWorkerSize, c.workerSize)

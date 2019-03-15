@@ -37,7 +37,7 @@ func (i *TestItem) Schema() (*TableSchema, error) {
 	return &TableSchema{
 		DatasetId: "test_dataset",
 		Prefix:    "test_table_",
-		Schema:    schema,
+		Meta: &bigquery.TableMetadata{Schema: schema},
 	}, nil
 }
 
@@ -184,7 +184,7 @@ func testconfig() *Config {
 	ss := &TableSchema{
 		DatasetId: datasetId,
 		Prefix:    "test_table_",
-		Schema:    schema,
+		Meta: &bigquery.TableMetadata{Schema: schema},
 	}
 
 	jwt, err := ioutil.ReadFile(jwtpath)
