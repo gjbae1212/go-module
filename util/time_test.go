@@ -60,4 +60,15 @@ func TestTime(t *testing.T) {
 	assert.Equal(0, tt5.Minute())
 	assert.Equal(0, tt5.Second())
 
+	ss5 := TimeToYearlyStringFormat(time.Now())
+	compare5 := fmt.Sprintf("%d", time.Now().Year())
+	assert.Equal(compare5, ss5)
+
+	tt6 := YearlyStringToTime(ss5)
+	assert.Equal(time.Now().Year(), tt6.Year())
+	assert.Equal(time.January, tt6.Month())
+	assert.Equal(1, tt6.Day())
+	assert.Equal(0, tt6.Hour())
+	assert.Equal(0, tt6.Minute())
+	assert.Equal(0, tt6.Second())
 }

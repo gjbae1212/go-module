@@ -5,6 +5,7 @@ import "time"
 var (
 	maxTime       = time.Unix(0, (1<<63)-1)
 	utcLayout     = "2006-01-02 15:04:05"
+	yearlyLayout  = "2006"
 	monthlyLayout = "200601"
 	dailyLayout   = "20060102"
 	hourlyLayout  = "2006010215"
@@ -24,6 +25,18 @@ func StringToTime(s string) time.Time {
 
 func TimeToString(t time.Time) string {
 	return t.Format(utcLayout)
+}
+
+func YearlyStringToTime(s string) time.Time {
+	t, err := time.Parse(yearlyLayout, s)
+	if err != nil {
+		return time.Time{}
+	}
+	return t
+}
+
+func TimeToYearlyStringFormat(t time.Time) string {
+	return t.Format(yearlyLayout)
 }
 
 func MonthlyStringToTime(s string) time.Time {
