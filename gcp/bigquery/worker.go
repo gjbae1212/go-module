@@ -174,6 +174,7 @@ func (w *Worker) insertAll() []error {
 	for datasetId, m := range categories {
 		for tableId, rows := range m {
 			inserter := w.client.Dataset(datasetId).Table(tableId).Inserter()
+			inserter.SkipInvalidRows = true
 			inserter.IgnoreUnknownValues = true
 			if err := inserter.Put(ctx, rows); err != nil {
 				if multiError, ok := err.(bigquery.PutMultiError); ok {
