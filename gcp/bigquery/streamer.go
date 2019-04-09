@@ -18,6 +18,7 @@ import (
 type (
 	Streamer interface {
 		AddRow(ctx context.Context, row Row) error
+		AddRowSync(ctx context.Context, row Row) error
 	}
 
 	streamer struct {
@@ -84,6 +85,24 @@ func (st *streamer) AddRow(ctx context.Context, row Row) error {
 	})
 }
 
+// It is a function what data could insert into bigquery and waited until it is completed.
+func (st *streamer) AddRowSync(ctx context.Context, row Row) error {
+	if row == nil || row.PublishedAt().IsZero() {
+		return fmt.Errorf("[err] AddRowSync empty params")
+	}
+
+	schema, err := row.Schema()
+	if err != nil {
+		return errors.Wrap(err, "[err] AddRowSync unknown schema")
+	}
+
+	inserter := st.client.Dataset(schema.DatasetId).Table(
+		st.getTableId(schema, row.PublishedAt())).Inserter()
+	inserter.SkipInvalidRows = true
+	inserter.IgnoreUnknownValues = true
+	return inserter.Put(ctx, row)
+}
+
 func (st *streamer) ticker() error {
 	st.tickerLock.Lock()
 	defer st.tickerLock.Unlock()
@@ -145,8 +164,11 @@ func (st *streamer) createTable() error {
 	return nil
 }
 
+// TODO: TEST CODE 짜야함
 func (st *streamer) getTableId(schema *TableSchema, t time.Time) string {
 	switch schema.Period {
+	case NotExist:
+		return schema.Prefix
 	case Daily:
 		return schema.Prefix + util.TimeToDailyStringFormat(t)
 	case Monthly:

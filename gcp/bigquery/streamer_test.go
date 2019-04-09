@@ -38,10 +38,42 @@ func (i *TestItem) Schema() (*TableSchema, error) {
 		DatasetId: "test_dataset",
 		Prefix:    "test_table_",
 		Meta: &bigquery.TableMetadata{Schema: schema},
+		Period: Daily,
 	}, nil
 }
 
 func (i *TestItem) PublishedAt() time.Time {
+	return time.Now().Add(time.Hour * 24)
+}
+
+type TestItem2 struct {
+	UserId bigquery.NullInt64
+}
+
+// Save implements the ValueSaver interface.
+func (i *TestItem2) Save() (map[string]bigquery.Value, string, error) {
+	// unique value 넣여믄 중복 값 있으면 다시 넣지 않음.
+	return map[string]bigquery.Value{
+		"UserId": i.UserId.Int64,
+		"Ignore": "ignore?",
+	}, fmt.Sprintf("%d", i.UserId.Int64), nil
+}
+
+func (i *TestItem2) Schema() (*TableSchema, error) {
+	schema, err := bigquery.InferSchema(i)
+	if err != nil {
+		return nil, err
+	}
+
+	return &TableSchema{
+		DatasetId: "test_dataset",
+		Prefix:    "allan_table",
+		Meta: &bigquery.TableMetadata{Schema: schema},
+		Period: NotExist,
+	}, nil
+}
+
+func (i *TestItem2) PublishedAt() time.Time {
 	return time.Now().Add(time.Hour * 24)
 }
 
@@ -138,6 +170,45 @@ func TestStreamer_AddRow(t *testing.T) {
 	assert.Error(err)
 }
 
+func TestStreamer_AddRowSync(t *testing.T) {
+	assert := assert.New(t)
+
+	cfg := testconfig()
+	if cfg == nil {
+		return
+	}
+
+	daily := &streamer{cfg: cfg, errFunc: func(err error) {
+		log.Println(err)
+	}}
+
+	client, err := bigquery.NewClient(context.Background(),
+		daily.cfg.projectId,
+		option.WithTokenSource(daily.cfg.jwt.TokenSource(context.Background())))
+
+	assert.NoError(err)
+	daily.client = client
+
+	dispatcher, err := newWorkerDispatcher(daily.cfg, daily.errFunc)
+	assert.NoError(err)
+	daily.async = dispatcher
+
+	err = daily.AddRowSync(context.Background(), nil)
+	assert.Error(err)
+
+	item := &TestItem2{UserId: bigquery.NullInt64{Int64: 1}}
+	for i := 0; i < 10; i++ {
+		item.UserId.Int64 = int64(i)
+		err = daily.AddRowSync(context.Background(), item)
+		assert.NoError(err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	cancel()
+	err = daily.AddRowSync(ctx, item)
+	assert.Error(err)
+}
+
 func TestStreamer_GetTableId(t *testing.T) {
 	assert := assert.New(t)
 
@@ -166,6 +237,15 @@ func TestStreamer_GetTableId(t *testing.T) {
 	id = daily.getTableId(schema, now)
 	assert.Equal(fmt.Sprintf("bb%d%02d%02d", now.Year(), now.Month(), now.Day()), id)
 	log.Println(id)
+
+	schema = &TableSchema{
+		Prefix: "allan",
+		Period: NotExist,
+	}
+	id = daily.getTableId(schema, now)
+	assert.Equal(schema.Prefix,id)
+	log.Println(id)
+
 }
 
 func testconfig() *Config {
@@ -177,14 +257,26 @@ func testconfig() *Config {
 
 	projectId := os.Getenv("PROJECT_ID")
 	datasetId := "test_dataset"
-	schema, err := bigquery.InferSchema(TestItem{})
+	schema1, err := bigquery.InferSchema(TestItem{})
 	if err != nil {
 		return nil
 	}
-	ss := &TableSchema{
+	ss1 := &TableSchema{
 		DatasetId: datasetId,
 		Prefix:    "test_table_",
-		Meta: &bigquery.TableMetadata{Schema: schema},
+		Meta: &bigquery.TableMetadata{Schema: schema1},
+		Period: Daily,
+	}
+
+	schema2, err := bigquery.InferSchema(TestItem2{})
+	if err != nil {
+		return nil
+	}
+	ss2 := &TableSchema{
+		DatasetId: datasetId,
+		Prefix:    "allan_table",
+		Meta: &bigquery.TableMetadata{Schema: schema2},
+		Period: NotExist,
 	}
 
 	jwt, err := ioutil.ReadFile(jwtpath)
@@ -192,7 +284,7 @@ func testconfig() *Config {
 		return nil
 	}
 
-	cfg, err := NewConfig(projectId, jwt, []*TableSchema{ss}, 1000, 2, 500, 1*time.Second)
+	cfg, err := NewConfig(projectId, jwt, []*TableSchema{ss1, ss2}, 1000, 2, 500, 1*time.Second)
 	if err != nil {
 		return nil
 	}

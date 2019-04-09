@@ -19,7 +19,8 @@ const (
 )
 
 const (
-	Daily TablePeriod = iota
+	NotExist TablePeriod = iota
+	Daily
 	Monthly
 	Yearly
 )
