@@ -37,8 +37,8 @@ func (i *TestItem) Schema() (*TableSchema, error) {
 	return &TableSchema{
 		DatasetId: "test_dataset",
 		Prefix:    "test_table_",
-		Meta: &bigquery.TableMetadata{Schema: schema},
-		Period: Daily,
+		Meta:      &bigquery.TableMetadata{Schema: schema},
+		Period:    Daily,
 	}, nil
 }
 
@@ -68,8 +68,8 @@ func (i *TestItem2) Schema() (*TableSchema, error) {
 	return &TableSchema{
 		DatasetId: "test_dataset",
 		Prefix:    "allan_table",
-		Meta: &bigquery.TableMetadata{Schema: schema},
-		Period: NotExist,
+		Meta:      &bigquery.TableMetadata{Schema: schema},
+		Period:    NotExist,
 	}, nil
 }
 
@@ -243,7 +243,7 @@ func TestStreamer_GetTableId(t *testing.T) {
 		Period: NotExist,
 	}
 	id = daily.getTableId(schema, now)
-	assert.Equal(schema.Prefix,id)
+	assert.Equal(schema.Prefix, id)
 	log.Println(id)
 
 }
@@ -264,8 +264,8 @@ func testconfig() *Config {
 	ss1 := &TableSchema{
 		DatasetId: datasetId,
 		Prefix:    "test_table_",
-		Meta: &bigquery.TableMetadata{Schema: schema1},
-		Period: Daily,
+		Meta:      &bigquery.TableMetadata{Schema: schema1},
+		Period:    Daily,
 	}
 
 	schema2, err := bigquery.InferSchema(TestItem2{})
@@ -275,8 +275,8 @@ func testconfig() *Config {
 	ss2 := &TableSchema{
 		DatasetId: datasetId,
 		Prefix:    "allan_table",
-		Meta: &bigquery.TableMetadata{Schema: schema2},
-		Period: NotExist,
+		Meta:      &bigquery.TableMetadata{Schema: schema2},
+		Period:    NotExist,
 	}
 
 	jwt, err := ioutil.ReadFile(jwtpath)
