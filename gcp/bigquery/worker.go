@@ -3,6 +3,9 @@ package bigquery
 import (
 	"context"
 	"fmt"
+	"net"
+	"os"
+	"syscall"
 	"time"
 
 	"github.com/gjbae1212/go-module/util"
@@ -148,8 +151,8 @@ func (w *Worker) stop() {
 	w.quit <- true
 }
 
-func (w *Worker) enqueue(job Job) {
-	w.jobs = append(w.jobs, job)
+func (w *Worker) enqueue(job ...Job) {
+	w.jobs = append(w.jobs, job...)
 }
 
 func (w *Worker) insertAll() []error {
@@ -161,38 +164,75 @@ func (w *Worker) insertAll() []error {
 	// wait max 1 minute
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
 	defer cancel()
-	defer func() { w.jobs = w.jobs[:0] }()
 
+	// retries logic
+	var retries []Job
+	// count
+	total := len(w.jobs)
+	fail := 0
+	defer func() {
+		w.jobs = w.jobs[:0]
+		if len(retries) > 0 {
+			fmt.Printf("[bq-worker-%d][retry] job retry! %d \n", w.id, len(retries))
+			w.enqueue(retries...)
+		}
+	}()
+
+	// job normalize
 	categories := make(map[string]map[string][]Row)
+	insertMap := make(map[string]Job)
 	for _, job := range w.jobs {
 		if _, ok := categories[job.Msg.DatasetId]; !ok {
 			categories[job.Msg.DatasetId] = make(map[string][]Row)
 		}
 		categories[job.Msg.DatasetId][job.Msg.TableId] = append(categories[job.Msg.DatasetId][job.Msg.TableId], job.Msg.Data)
+		if job.Msg.Data.InsertId() != "" {
+			insertMap[job.Msg.Data.InsertId()] = job
+		}
 	}
 
+	// insert all
 	for datasetId, m := range categories {
 		for tableId, rows := range m {
 			inserter := w.client.Dataset(datasetId).Table(tableId).Inserter()
 			inserter.SkipInvalidRows = true
 			inserter.IgnoreUnknownValues = true
 			if err := inserter.Put(ctx, rows); err != nil {
-				if multiError, ok := err.(bigquery.PutMultiError); ok {
-					for _, err1 := range multiError {
-						for _, err2 := range err1.Errors {
-							fmt.Println(err2)
-							errs = append(errs, err2)
+				if multierr, ok := err.(bigquery.PutMultiError); ok {
+					for _, rowerr := range multierr {
+						if len(rowerr.Errors) > 0 {
+							fmt.Println(rowerr.Errors[0])
+							errs = append(errs, rowerr.Errors[0])
+							if w.isRetryable(rowerr.Errors[0]) {
+								if job, ok := insertMap[rowerr.InsertID]; ok { // partly retry
+									retries = append(retries, job)
+								}
+							} else {
+								fail += 1
+							}
 						}
 					}
 				} else {
 					fmt.Println(err)
 					errs = append(errs, err)
+					if w.isRetryable(err) {
+						for _, row := range rows { // all retry
+							retries = append(retries, Job{Msg: &Message{
+								DatasetId: datasetId,
+								TableId:   tableId,
+								Data:      row,
+							}})
+						}
+					} else {
+						fail += len(rows)
+					}
 				}
 			}
 		}
 	}
 
-	fmt.Printf("[bq-worker-%d][%s] insert %d count\n", w.id, util.TimeToString(time.Now()), len(w.jobs))
+	fmt.Printf("[bq-worker-%d][%s] total %d insert %d fail %d retry %d \n", w.id, util.TimeToString(time.Now()),
+		total, total-fail-len(retries), fail, len(retries))
 	return errs
 }
 
@@ -204,6 +244,27 @@ func (w *Worker) insert(msg *Message) error {
 		return errors.Wrap(err, "[err] insert")
 	}
 	return nil
+}
+
+func (w *Worker) isRetryable(err error) bool {
+	switch err.(type) {
+	case *bigquery.Error: // bigquery error timeout
+		berr := err.(*bigquery.Error)
+		if berr.Reason == "timeout" {
+			return true
+		}
+	case *net.OpError: // catch connection reset
+		neterr := err.(*net.OpError)
+		// If this error message is `connection reset`, so jobs is retried.
+		if syserr, ok := neterr.Err.(*os.SyscallError); ok && syserr.Err == syscall.ECONNRESET {
+			return true
+		}
+	}
+	if err == context.DeadlineExceeded || err == context.Canceled {
+		return true
+	}
+
+	return false
 }
 
 func newWorker(id int, cfg *Config, fn ErrorHandler, pool chan chan Job) (*Worker, error) {

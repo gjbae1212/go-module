@@ -46,6 +46,10 @@ func (i *TestItem) PublishedAt() time.Time {
 	return time.Now().Add(time.Hour * 24)
 }
 
+func (i *TestItem) InsertId() string {
+	return fmt.Sprintf("%d", i.UserId.Int64)
+}
+
 type TestItem2 struct {
 	UserId bigquery.NullInt64
 }
@@ -75,6 +79,10 @@ func (i *TestItem2) Schema() (*TableSchema, error) {
 
 func (i *TestItem2) PublishedAt() time.Time {
 	return time.Now().Add(time.Hour * 24)
+}
+
+func (i *TestItem2) InsertId() string {
+	return fmt.Sprintf("%d", i.UserId.Int64)
 }
 
 func TestTicker(t *testing.T) {
