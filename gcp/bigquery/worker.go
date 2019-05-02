@@ -3,8 +3,7 @@ package bigquery
 import (
 	"context"
 	"fmt"
-	"net"
-	"os"
+	"strings"
 	"syscall"
 	"time"
 
@@ -253,13 +252,14 @@ func (w *Worker) isRetryable(err error) bool {
 		if berr.Reason == "timeout" {
 			return true
 		}
-	case *net.OpError: // catch connection reset
-		neterr := err.(*net.OpError)
-		// If this error message is `connection reset`, so jobs is retried.
-		if syserr, ok := neterr.Err.(*os.SyscallError); ok && syserr.Err == syscall.ECONNRESET {
-			return true
-		}
 	}
+
+	// catch connection reset
+	if strings.Contains(err.Error(), syscall.ECONNRESET.Error()) {
+		return true
+	}
+
+	// catch context deadline or canceled
 	if err == context.DeadlineExceeded || err == context.Canceled {
 		return true
 	}

@@ -2,6 +2,7 @@ package bigquery
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net"
 	"os"
@@ -112,6 +113,8 @@ func TestWorker(t *testing.T) {
 	assert.False(ok)
 	nerr.Err = &os.SyscallError{Err: syscall.ECONNRESET}
 	ok = worker.isRetryable(berr)
+	assert.True(ok)
+	ok = worker.isRetryable(fmt.Errorf("hello test error connection reset by peer hi"))
 	assert.True(ok)
 
 	// insert
