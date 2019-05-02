@@ -13,6 +13,7 @@ require (
 	github.com/gomodule/redigo v2.0.0+incompatible
 	github.com/google/martian v2.1.0+incompatible // indirect
 	github.com/googleapis/gax-go v2.0.2+incompatible // indirect
+	github.com/goware/urlx v0.2.0
 	github.com/joomcode/errorx v0.1.0
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/labstack/gommon v0.2.8
@@ -27,7 +28,6 @@ require (
 	github.com/yuin/gopher-lua v0.0.0-20181031023651-12c4817b42c5 // indirect
 	go.opencensus.io v0.18.0 // indirect
 	golang.org/x/crypto v0.0.0-20181126163421-e657309f52e7
-	golang.org/x/net v0.0.0-20181114220301-adae6a3d119a // indirect
 	golang.org/x/oauth2 v0.0.0-20181106182150-f42d05182288
 	golang.org/x/sync v0.0.0-20181108010431-42b317875d0f // indirect
 	google.golang.org/api v0.0.0-20181203233308-6142e720c068
