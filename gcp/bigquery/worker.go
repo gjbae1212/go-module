@@ -260,10 +260,10 @@ func (w *Worker) isRetryable(err error) bool {
 	}
 
 	// catch context deadline or canceled
-	if err == context.DeadlineExceeded || err == context.Canceled {
+	if strings.Contains(err.Error(), context.DeadlineExceeded.Error()) ||
+		strings.Contains(err.Error(), context.Canceled.Error()) {
 		return true
 	}
-
 	return false
 }
 
