@@ -20,12 +20,12 @@ func (m *mockTask2) Process(ctx context.Context) error {
 func TestWorker(t *testing.T) {
 	assert := assert.New(t)
 
-	check := 0
+	queue := make(chan int, 10000)
 	k, err := NewAsyncTask(WithQueueSizeOption(10),
 		WithWorkerSizeOption(2),
 		WithTimeoutOption(3*time.Second),
 		WithErrorHandlerOption(func(err error) {
-			check += 1
+			queue <- 1
 		}))
 	assert.NoError(err)
 
@@ -41,13 +41,13 @@ func TestWorker(t *testing.T) {
 	assert.NoError(err)
 	time.Sleep(1 * time.Second)
 	assert.Equal(0, len(k.(*keeper).dispatcher.taskQueue))
-	assert.Equal(0, check)
+	assert.Equal(0, len(queue))
 
 	k, err = NewAsyncTask(WithQueueSizeOption(10),
 		WithWorkerSizeOption(2),
 		WithTimeoutOption(1*time.Second),
 		WithErrorHandlerOption(func(err error) {
-			check += 1
+			queue <- 1
 		}))
 	assert.NoError(err)
 
@@ -56,6 +56,6 @@ func TestWorker(t *testing.T) {
 		assert.NoError(err)
 	}
 	time.Sleep(5 * time.Second)
-	assert.Equal(2, check)
+	assert.Equal(2, len(queue))
 
 }
