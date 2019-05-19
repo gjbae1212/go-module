@@ -34,8 +34,8 @@ type (
 		// Error handler
 		errorHandler ErrorHandler
 
-		// Max message length
-		maxMessageLength int64
+		// Max read limit
+		maxReadLimit int64
 	}
 )
 
@@ -52,7 +52,7 @@ func NewBreaker(opts ...Option) (Breaker, error) {
 		WithErrorHandlerOption(func(err error) {
 			fmt.Printf("%+v \n", err)
 		}),
-		WithMaxMessageLength(512),
+		WithMaxReadLimit(512),
 	}
 	o = append(o, opts...)
 	for _, opt := range o {
@@ -62,7 +62,7 @@ func NewBreaker(opts ...Option) (Breaker, error) {
 	if bk.broadcast == nil {
 		WithMaxMessagePoolLength(100).apply(bk)
 	}
-
+	go bk.start()
 	return Breaker(bk), nil
 }
 

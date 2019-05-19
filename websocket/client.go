@@ -1,7 +1,6 @@
 package websocket
 
 import (
-	"log"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -32,15 +31,15 @@ type Client struct {
 	send chan Message
 
 	// message length
-	maxMessageLength int64
+	maxReadLimit int64
 }
 
 func NewClient(bk *breaker, conn *websocket.Conn) (*Client, error) {
 	client := &Client{
-		breaker:          Breaker(bk),
-		conn:             conn,
-		send:             make(chan Message),
-		maxMessageLength: bk.maxMessageLength,
+		breaker:      Breaker(bk),
+		conn:         conn,
+		send:         make(chan Message, 200), // messages is stacked under 200.
+		maxReadLimit: bk.maxReadLimit,
 	}
 	go client.loopOfRead()
 	go client.loopOfWrite()
@@ -55,20 +54,24 @@ func (client *Client) loopOfRead() {
 		}
 	}()
 
-	client.conn.SetReadLimit(client.maxMessageLength)
+	client.conn.SetReadLimit(client.maxReadLimit)
 	// it will be setting deadline of a websocket.
 	client.conn.SetReadDeadline(time.Now().Add(pongWait))
 	// it will be newly setting deadline of a websocket when a ping message received.
-	client.conn.SetPongHandler(func(string) error { client.conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
+	client.conn.SetPongHandler(func(string) error {
+		client.conn.SetReadDeadline(time.Now().Add(pongWait))
+		return nil
+	})
 
 	for {
 		// If length of message a client is received will exceed over limit, it is raised error.
 		_, message, err := client.conn.ReadMessage()
-		if err != nil {
-			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				log.Printf("error: %v", err)
+		if err != nil { // Usually be closed a connection, a error is raised
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseAbnormalClosure) {
+				wraperr := errors.Wrap(err.(error), "[err] loopOfRead read close")
+				client.breaker.(*breaker).errorHandler(wraperr)
 			}
-			break
+			return
 		}
 		// Message received will broadcast all of users.
 		if err := client.breaker.BroadCast(&internalMessage{payload: message}); err != nil {
@@ -94,22 +97,22 @@ func (client *Client) loopOfWrite() {
 			client.conn.SetWriteDeadline(time.Now().Add(writeWait))
 			// If channel of the send is closed
 			if !ok {
-				if err := client.conn.WriteMessage(websocket.CloseMessage, []byte{}); err != nil {
-					wraperr := errors.Wrap(err.(error), "[err] loopOfWrite close")
+				// Do not check a error, because already connection will possibly be closed.
+				client.conn.WriteMessage(websocket.CloseMessage, []byte{})
+				return
+			}
+			// A message send to a user.
+			if err := client.conn.WriteMessage(websocket.TextMessage, msg.GetMessage()); err != nil { // Usually be closed a connection, a error is raised
+				if websocket.IsUnexpectedCloseError(err, websocket.CloseAbnormalClosure) {
+					wraperr := errors.Wrap(err.(error), "[err] loopOfWrite write close")
 					client.breaker.(*breaker).errorHandler(wraperr)
 				}
 				return
 			}
-			// A message send to a user.
-			if err := client.conn.WriteMessage(websocket.TextMessage, msg.GetMessage()); err != nil {
-				wraperr := errors.Wrap(err.(error), "[err] loopOfWrite text")
-				client.breaker.(*breaker).errorHandler(wraperr)
-				return
-			}
 		case <-ticker.C:
 			client.conn.SetWriteDeadline(time.Now().Add(writeWait))
-			// a ping message will periodically send.
-			if err := client.conn.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
+			// a ping message will periodically send to a client.
+			if err := client.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
 				wraperr := errors.Wrap(err.(error), "[err] loopOfWrite ping")
 				client.breaker.(*breaker).errorHandler(wraperr)
 				return

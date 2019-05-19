@@ -14,9 +14,9 @@ func WithErrorHandlerOption(f ErrorHandler) OptionFunc {
 	}
 }
 
-func WithMaxMessageLength(length int64) OptionFunc {
+func WithMaxReadLimit(length int64) OptionFunc {
 	return func(bk *breaker) {
-		bk.maxMessageLength = length
+		bk.maxReadLimit = length
 	}
 }
 
