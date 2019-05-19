@@ -27,7 +27,7 @@ func TestParseURL(t *testing.T) {
 	assert.Equal("8080", port)
 	assert.Equal("/aa/bb", path)
 
-	url3:= "https://naver.com/aa/bb?cc=dd&ee=ff#fragment"
+	url3 := "https://naver.com/aa/bb?cc=dd&ee=ff#fragment"
 	schema, domain, port, path, query, fragment, err = ParseURL(url3)
 	assert.Equal("https", schema)
 	assert.Equal("naver.com", domain)

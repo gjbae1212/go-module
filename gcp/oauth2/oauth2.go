@@ -9,8 +9,8 @@ import (
 )
 
 var (
-	ScopeEmail       = "https://www.googleapis.com/auth/userinfo.email"
-	ScopeProfile     = "https://www.googleapis.com/auth/userinfo.profile"
+	ScopeEmail   = "https://www.googleapis.com/auth/userinfo.email"
+	ScopeProfile = "https://www.googleapis.com/auth/userinfo.profile"
 )
 
 type Manager interface {

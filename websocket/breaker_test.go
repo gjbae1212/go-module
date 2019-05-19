@@ -95,7 +95,7 @@ func TestBreaker_BroadCast(t *testing.T) {
 	assert.NoError(err)
 	time.Sleep(1 * time.Second)
 
-	err = bk.BroadCast(&internalMessage{payload:[]byte("hello world")})
+	err = bk.BroadCast(&internalMessage{payload: []byte("hello world")})
 	assert.NoError(err)
 	time.Sleep(1 * time.Second)
 }

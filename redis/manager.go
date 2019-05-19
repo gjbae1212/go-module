@@ -3,8 +3,8 @@ package redis
 import (
 	"time"
 
-	redigo "github.com/gomodule/redigo/redis"
 	"github.com/gjbae1212/consistent"
+	redigo "github.com/gomodule/redigo/redis"
 )
 
 type Manager interface {

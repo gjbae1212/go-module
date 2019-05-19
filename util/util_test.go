@@ -11,7 +11,6 @@ func TestGetModulePath(t *testing.T) {
 	assert.NotEmpty(GetModulePath())
 }
 
-
 func TestCheckHttpMethod(t *testing.T) {
 	assert := assert.New(t)
 	assert.True(CheckHttpMethod("get"))

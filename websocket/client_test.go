@@ -37,7 +37,7 @@ func TestNewClient(t *testing.T) {
 		conns = append(conns, conn)
 		go func(conn *websocket.Conn) {
 			for {
-				_, _, err :=  conn.ReadMessage() // if a ping message is received, client will send pong.
+				_, _, err := conn.ReadMessage() // if a ping message is received, client will send pong.
 				if err != nil {
 					return
 				}

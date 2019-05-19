@@ -1,10 +1,10 @@
 package logger
 
 import (
+	glog "github.com/labstack/gommon/log"
 	"io"
 	"os"
 	"path/filepath"
-	glog "github.com/labstack/gommon/log"
 )
 
 func NewLogger(dir, filename string) (*glog.Logger, error) {
