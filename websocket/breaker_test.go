@@ -51,6 +51,7 @@ func TestBreaker_Register(t *testing.T) {
 	err = bk.Register(conn)
 	assert.NoError(err)
 	time.Sleep(1 * time.Second)
+	bk.(*breaker).stop()
 	assert.Len(bk.(*breaker).clientMap, 1)
 }
 
@@ -69,10 +70,13 @@ func TestBreaker_UnRegister(t *testing.T) {
 	err = bk.Register(conn)
 	assert.NoError(err)
 	time.Sleep(1 * time.Second)
+	bk.(*breaker).stop()
 	assert.Len(bk.(*breaker).clientMap, 1)
 	for k, _ := range bk.(*breaker).clientMap {
+		bk.(*breaker).start()
 		err = bk.UnRegister(k)
 		assert.NoError(err)
+		bk.(*breaker).stop()
 	}
 	time.Sleep(1 * time.Second)
 	assert.Len(bk.(*breaker).clientMap, 0)

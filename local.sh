@@ -25,7 +25,7 @@ function test_part
    do
       if [[ $item =~ .*${part}.* ]]
       then
-        go test -v $item --count 1
+        go test -v $item --count 1 --race
       fi
    done
 }

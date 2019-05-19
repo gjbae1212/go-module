@@ -36,6 +36,9 @@ type (
 
 		// Max read limit
 		maxReadLimit int64
+
+		// stop
+		quit chan bool
 	}
 )
 
@@ -45,6 +48,7 @@ func NewBreaker(opts ...Option) (Breaker, error) {
 		clientMap:  make(map[*Client]bool),
 		register:   make(chan *Client),
 		unregister: make(chan *Client),
+		quit:       make(chan bool),
 	}
 
 	// default message length and error handler
@@ -62,7 +66,7 @@ func NewBreaker(opts ...Option) (Breaker, error) {
 	if bk.broadcast == nil {
 		WithMaxMessagePoolLength(100).apply(bk)
 	}
-	go bk.start()
+	bk.start()
 	return Breaker(bk), nil
 }
 
@@ -99,31 +103,39 @@ func (bk *breaker) BroadCast(msg Message) error {
 
 // Start a Breaker Loop
 func (bk *breaker) start() {
-	defer func() {
-		if r := recover(); r != nil {
-			wraperr := errors.Wrap(r.(error), "[err] breaker start panic")
-			bk.errorHandler(wraperr)
-			go bk.start()
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				wraperr := errors.Wrap(r.(error), "[err] breaker start panic")
+				bk.errorHandler(wraperr)
+				go bk.start()
+			}
+		}()
+
+		for {
+			select {
+			case client := <-bk.register:
+				bk.clientMap[client] = true
+			case client := <-bk.unregister:
+				if _, ok := bk.clientMap[client]; ok {
+					delete(bk.clientMap, client)
+					close(client.send)
+					if err := client.conn.Close(); err != nil {
+						wraperr := errors.Wrap(err, "[err] websocket close")
+						bk.errorHandler(wraperr)
+					}
+				}
+			case msg := <-bk.broadcast:
+				for client, _ := range bk.clientMap {
+					client.send <- msg
+				}
+			case <-bk.quit:
+				return
+			}
 		}
 	}()
+}
 
-	for {
-		select {
-		case client := <-bk.register:
-			bk.clientMap[client] = true
-		case client := <-bk.unregister:
-			if _, ok := bk.clientMap[client]; ok {
-				delete(bk.clientMap, client)
-				close(client.send)
-				if err := client.conn.Close(); err != nil {
-					wraperr := errors.Wrap(err, "[err] websocket close")
-					bk.errorHandler(wraperr)
-				}
-			}
-		case msg := <-bk.broadcast:
-			for client, _ := range bk.clientMap {
-				client.send <- msg
-			}
-		}
-	}
+func (bk *breaker) stop() {
+	bk.quit <- true
 }

@@ -45,8 +45,9 @@ func TestNewClient(t *testing.T) {
 		}(conn)
 	}
 	time.Sleep(1 * time.Second)
+	mockBreaker.(*breaker).stop()
 	assert.Len(mockBreaker.(*breaker).clientMap, 10)
-
+	mockBreaker.(*breaker).start()
 	// BROADCAST
 	for i := 0; i < 10; i++ {
 		err := mockBreaker.BroadCast(&internalMessage{payload: []byte("HELLO WORLD ABCDEFGHIJKNMKOPKQSTUVWXZY")})
@@ -63,12 +64,15 @@ func TestNewClient(t *testing.T) {
 		assert.NoError(err)
 	}
 	time.Sleep(1 * time.Second)
+	mockBreaker.(*breaker).stop()
 	assert.Len(mockBreaker.(*breaker).clientMap, 10)
+	mockBreaker.(*breaker).start()
 	for _, conn := range conns {
 		err := conn.WriteMessage(websocket.TextMessage, []byte("raise error!!!!!!!!!!!!!!!!!"))
 		assert.NoError(err)
 	}
 	time.Sleep(1 * time.Second)
+	mockBreaker.(*breaker).stop()
 	assert.Len(mockBreaker.(*breaker).clientMap, 0)
 }
 
