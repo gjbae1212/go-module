@@ -142,29 +142,28 @@ func (st *streamer) deleteTicker() {
 }
 
 func (st *streamer) createTable() error {
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
+	// create today and tomorrow tables
 	for _, schema := range st.cfg.schemas {
-		// 내일 테이블을 미리 생성
-		tableId := st.getTableId(schema, time.Now().Add(24*time.Hour))
-		table := st.client.Dataset(schema.DatasetId).Table(tableId)
-
-		// table 없다면 error
-		md, err := table.Metadata(ctx)
-		if err != nil || md == nil {
-			if err := table.Create(ctx,
-				&bigquery.TableMetadata{Schema: schema.Meta.Schema}); err != nil {
-				return errors.Wrap(err, "[err] createTable")
-			} else {
-				fmt.Printf("[bq-table][%s] create %s\n", util.TimeToString(time.Now()), tableId)
+		for _, t := range []time.Time{time.Now(), time.Now().Add(24 * time.Hour)} {
+			tableId := st.getTableId(schema, t)
+			table := st.client.Dataset(schema.DatasetId).Table(tableId)
+			md, err := table.Metadata(ctx)
+			if err != nil || md == nil {
+				if err := table.Create(ctx,
+					&bigquery.TableMetadata{Schema: schema.Meta.Schema}); err != nil {
+					return errors.Wrap(err, "[err] createTable")
+				} else {
+					fmt.Printf("[bq-table][%s] create %s\n", util.TimeToString(time.Now()), tableId)
+				}
 			}
 		}
 	}
 	return nil
 }
 
-// TODO: TEST CODE 짜야함
 func (st *streamer) getTableId(schema *TableSchema, t time.Time) string {
 	switch schema.Period {
 	case NotExist:
