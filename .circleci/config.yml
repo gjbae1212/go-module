@@ -3,6 +3,10 @@ jobs:
   build:
     working_directory: /go/src/github.com/gjbae1212/go-module
 
+    branches:
+          only:
+            - master
+
     docker:
     - image: golang:1.12
 
