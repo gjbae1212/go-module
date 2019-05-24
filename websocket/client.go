@@ -67,7 +67,7 @@ func (client *Client) loopOfRead() {
 		// If length of message a client is received will exceed over limit, it is raised error.
 		_, message, err := client.conn.ReadMessage()
 		if err != nil { // Usually be closed a connection, a error is raised
-			if websocket.IsUnexpectedCloseError(err, websocket.CloseAbnormalClosure) {
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseAbnormalClosure, websocket.CloseGoingAway) {
 				wraperr := errors.Wrap(err.(error), "[err] loopOfRead read close")
 				client.breaker.(*breaker).errorHandler(wraperr)
 			}
@@ -103,7 +103,7 @@ func (client *Client) loopOfWrite() {
 			}
 			// A message send to a user.
 			if err := client.conn.WriteMessage(websocket.TextMessage, msg.GetMessage()); err != nil { // Usually be closed a connection, a error is raised
-				if websocket.IsUnexpectedCloseError(err, websocket.CloseAbnormalClosure) {
+				if websocket.IsUnexpectedCloseError(err, websocket.CloseAbnormalClosure, websocket.CloseGoingAway) {
 					wraperr := errors.Wrap(err.(error), "[err] loopOfWrite write close")
 					client.breaker.(*breaker).errorHandler(wraperr)
 				}
