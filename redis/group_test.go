@@ -139,75 +139,71 @@ func TestDo(t *testing.T) {
 	reply, err = m.Do("MSET", "allan", 1.0, "aaa")
 	assert.Error(err)
 
-	var args []interface{}
+	var setArgs []interface{}
+	var getArgs []interface{}
 	for i := 0; i < 1000; i++ {
-		args = append(args, fmt.Sprintf("a-%d-b", i), fmt.Sprintf("%d", i))
+		getArgs = append(getArgs, fmt.Sprintf("a-%d-b", i))
+		setArgs = append(setArgs, fmt.Sprintf("a-%d-b", i), fmt.Sprintf("%d", i))
 	}
-	reply, err = m.Do("MSET", args...)
+	reply, err = m.Do("MSET", setArgs...)
 	assert.NoError(err)
-	assert.Len(reply.([]interface{}), 3)
+	assert.Len(reply.([]interface{}), 1000)
 	for _, ok := range reply.([]interface{}) {
 		assert.Equal("OK", ok)
 	}
 
-	reply, err = m.Do("MGET", args...)
+	reply, err = m.Do("MGET", getArgs...)
 	assert.NoError(err)
-	var total []string
-	for _, sep := range reply.([]interface{}) {
-		result, err := redigo.Values(sep, err)
-		assert.NoError(err)
-
-		var uniq []string
-		for i := 0; i < len(result); i += 2 {
-			if result[i] == nil {
-				continue
-			}
-			uniq = append(uniq, string(result[i].([]byte)))
-		}
-		total = append(total, uniq...)
+	assert.Len(reply, 1000)
+	for i := 0; i < 1000; i++ {
+		v := string(reply.([]interface{})[i].([]byte))
+		assert.Equal(fmt.Sprintf("%d", i), v)
 	}
-	assert.Equal(1000, len(total))
 
-	var subargs []interface{}
+	var setArgs2 []interface{}
+	var getArgs2 []interface{}
 	for i := 1000; i < 2000; i++ {
-		subargs = append(subargs, fmt.Sprintf("a-%d-b", i), float64(i))
+		getArgs2 = append(getArgs2, fmt.Sprintf("a-%d-b", i))
+		setArgs2 = append(setArgs2, fmt.Sprintf("a-%d-b", i), float64(i))
 	}
 
-	total = []string{}
-	reply, err = m.Do("MGET", subargs...)
+	reply, err = m.Do("MGET", getArgs2...)
 	assert.NoError(err)
-	for _, sep := range reply.([]interface{}) {
-		result, err := redigo.Values(sep, err)
-		assert.NoError(err)
-
-		var uniq []string
-		for i := 0; i < len(result); i += 2 {
-			if result[i] == nil {
-				continue
-			}
-			uniq = append(uniq, string(result[i].([]byte)))
-		}
-		total = append(total, uniq...)
+	assert.Len(reply, 1000)
+	for _, v := range reply.([]interface{}) {
+		assert.Nil(v)
 	}
-	assert.Equal(0, len(total))
 
-	total = []string{}
-	newArgs := append(args, subargs...)
-	reply, err = m.Do("MGET", newArgs...)
+	getArgs3 := append(getArgs2, getArgs...)
+	reply, err = m.Do("MGET", getArgs3...)
 	assert.NoError(err)
-	for _, sep := range reply.([]interface{}) {
-		result, err := redigo.Values(sep, err)
-		assert.NoError(err)
-		var uniq []string
-		for i := 0; i < len(result); i += 2 {
-			if result[i] == nil {
-				continue
-			}
-			uniq = append(uniq, string(result[i].([]byte)))
+	assert.Len(reply, 2000)
+	for i := 0; i < 2000; i++ {
+		if i < 1000 {
+			assert.Nil(reply.([]interface{})[i])
+			continue
 		}
-		total = append(total, uniq...)
+		v := string(reply.([]interface{})[i].([]byte))
+		assert.Equal(fmt.Sprintf("%d", i%1000), v)
 	}
-	assert.Equal(1000, len(total))
+
+	// SET + MGET
+	for i := 0; i < 10; i++ {
+		reply, err = m.Do("SET", fmt.Sprintf("%d-", i), i)
+		assert.NoError(err)
+		assert.Equal("OK", reply)
+	}
+	reply, err = m.Do("MGET", "1-")
+	assert.NoError(err)
+	assert.Len(reply, 1)
+	assert.Equal("1", string(reply.([]interface{})[0].([]byte)))
+
+	reply, err = m.Do("MGET", "2-", "9-", "10-")
+	assert.NoError(err)
+	assert.Len(reply, 3)
+	assert.Equal("2", string(reply.([]interface{})[0].([]byte)))
+	assert.Equal("9", string(reply.([]interface{})[1].([]byte)))
+	assert.Equal(nil, reply.([]interface{})[2])
 
 	// Close
 	err = m.Close()

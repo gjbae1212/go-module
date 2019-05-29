@@ -1,12 +1,13 @@
 package redis
 
 import (
-	"github.com/gjbae1212/consistent"
-	redigo "github.com/gomodule/redigo/redis"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/gjbae1212/consistent"
+	redigo "github.com/gomodule/redigo/redis"
 )
 
 var (
@@ -46,7 +47,8 @@ type (
 		Wait            bool          // if pool is overflow at max active limit, whether wait
 	}
 
-	reply struct {
+	multiReply struct {
+		args     []interface{}
 		response interface{}
 		err      error
 	}
@@ -176,10 +178,10 @@ func (c *Group) do(timeout time.Duration, command string, args ...interface{}) (
 	}
 }
 
-func (c *Group) asyncDo(timeout time.Duration, ch chan<- *reply, pool *Pool, command string, args ...interface{}) {
+func (c *Group) asyncDo(timeout time.Duration, ch chan<- *multiReply, pool *Pool, command string, args ...interface{}) {
 	defer func() {
 		if err := recover(); err != nil {
-			ch <- &reply{response: nil, err: err.(error)}
+			ch <- &multiReply{response: nil, err: err.(error)}
 		}
 	}()
 	conn := pool.Get()
@@ -193,7 +195,7 @@ func (c *Group) asyncDo(timeout time.Duration, ch chan<- *reply, pool *Pool, com
 		result, err = redigo.DoWithTimeout(conn, timeout, command, args...)
 	}
 
-	ch <- &reply{response: result, err: err}
+	ch <- &multiReply{args: args, response: result, err: err}
 }
 
 func (c *Group) multi(timeout time.Duration, command string, args ...interface{}) ([]interface{}, error) {
@@ -210,32 +212,66 @@ func (c *Group) multi(timeout time.Duration, command string, args ...interface{}
 	}
 
 	group := map[*Pool][]interface{}{}
-	for i := 0; i < len(args); i += 2 {
-		key, err := keyString(args[i])
-		if err != nil {
-			return nil, err
+	var allKeys []string
+	switch {
+	case strings.HasPrefix(command, "MSET"):
+		for i := 0; i < len(args); i += 2 {
+			key, err := keyString(args[i])
+			if err != nil {
+				return nil, err
+			}
+			pool, err := c.getPoolByKey(key)
+			if err != nil {
+				return nil, err
+			}
+			allKeys = append(allKeys, args[i].(string))
+			group[pool] = append(group[pool], args[i], args[i+1])
 		}
-		pool, err := c.getPoolByKey(key)
-		if err != nil {
-			return nil, err
+	case strings.HasPrefix(command, "MGET"):
+		for i := 0; i < len(args); i += 1 {
+			key, err := keyString(args[i])
+			if err != nil {
+				return nil, err
+			}
+			pool, err := c.getPoolByKey(key)
+			if err != nil {
+				return nil, err
+			}
+			allKeys = append(allKeys, args[i].(string))
+			group[pool] = append(group[pool], args[i])
 		}
-		group[pool] = append(group[pool], key, args[i+1])
 	}
 
-	var chs []chan *reply
+	var chs []chan *multiReply
 	for pool, args := range group {
-		ch := make(chan *reply)
+		ch := make(chan *multiReply)
 		chs = append(chs, ch)
 		go c.asyncDo(timeout, ch, pool, command, args...)
 	}
 
 	var reply []interface{}
+	collectionMap := make(map[string]interface{})
 	for _, ch := range chs {
 		callback := <-ch
-		if callback.err != nil {
-			return nil, callback.err
+		switch {
+		case strings.HasPrefix(command, "MSET"):
+			if callback.err != nil {
+				return nil, callback.err
+			}
+			for i := 0; i < len(callback.args); i += 2 {
+				collectionMap[callback.args[i].(string)] = callback.response
+			}
+		case strings.HasPrefix(command, "MGET"):
+			if _, err := redigo.Values(callback.response, callback.err); err != nil {
+				return nil, err
+			}
+			for i := 0; i < len(callback.args); i += 1 {
+				collectionMap[callback.args[i].(string)] = callback.response.([]interface{})[i]
+			}
 		}
-		reply = append(reply, callback.response)
+	}
+	for _, key := range allKeys {
+		reply = append(reply, collectionMap[key])
 	}
 	return reply, nil
 }
