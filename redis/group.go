@@ -212,7 +212,7 @@ func (c *Group) multi(timeout time.Duration, command string, args ...interface{}
 	}
 
 	group := map[*Pool][]interface{}{}
-	var allKeys []string
+	var allKeys []interface{}
 	switch {
 	case strings.HasPrefix(command, "MSET"):
 		for i := 0; i < len(args); i += 2 {
@@ -224,7 +224,7 @@ func (c *Group) multi(timeout time.Duration, command string, args ...interface{}
 			if err != nil {
 				return nil, err
 			}
-			allKeys = append(allKeys, args[i].(string))
+			allKeys = append(allKeys, args[i])
 			group[pool] = append(group[pool], args[i], args[i+1])
 		}
 	case strings.HasPrefix(command, "MGET"):
@@ -237,7 +237,7 @@ func (c *Group) multi(timeout time.Duration, command string, args ...interface{}
 			if err != nil {
 				return nil, err
 			}
-			allKeys = append(allKeys, args[i].(string))
+			allKeys = append(allKeys, args[i])
 			group[pool] = append(group[pool], args[i])
 		}
 	}
@@ -250,7 +250,7 @@ func (c *Group) multi(timeout time.Duration, command string, args ...interface{}
 	}
 
 	var reply []interface{}
-	collectionMap := make(map[string]interface{})
+	collectionMap := make(map[interface{}]interface{})
 	for _, ch := range chs {
 		callback := <-ch
 		switch {
@@ -259,14 +259,14 @@ func (c *Group) multi(timeout time.Duration, command string, args ...interface{}
 				return nil, callback.err
 			}
 			for i := 0; i < len(callback.args); i += 2 {
-				collectionMap[callback.args[i].(string)] = callback.response
+				collectionMap[callback.args[i]] = callback.response
 			}
 		case strings.HasPrefix(command, "MGET"):
 			if _, err := redigo.Values(callback.response, callback.err); err != nil {
 				return nil, err
 			}
 			for i := 0; i < len(callback.args); i += 1 {
-				collectionMap[callback.args[i].(string)] = callback.response.([]interface{})[i]
+				collectionMap[callback.args[i]] = callback.response.([]interface{})[i]
 			}
 		}
 	}
