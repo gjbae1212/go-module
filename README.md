@@ -11,14 +11,17 @@ This is useful utility for go.
 </p>
 
 ## FEATURES
-- feedly [![GoDoc](https://godoc.org/github.com/gjbae1212/go-module/feedly?status.svg)](https://godoc.org/github.com/gjbae1212/go-module/feedly)
-- redis (consistent hashing + multi node) [![GoDoc](https://godoc.org/github.com/gjbae1212/go-module/redis?status.svg)](https://godoc.org/github.com/gjbae1212/go-module/redis)
-- gcp 
-  - bigquery streamer [![GoDoc](https://godoc.org/github.com/gjbae1212/go-module/gcp/bigquery?status.svg)](https://godoc.org/github.com/gjbae1212/go-module/gcp/bigquery)
-  - dialogflow [![GoDoc](https://godoc.org/github.com/gjbae1212/go-module/gcp/dialogflow?status.svg)](https://godoc.org/github.com/gjbae1212/go-module/gcp/dialogflow)
-  - oauth2 [![GoDoc](https://godoc.org/github.com/gjbae1212/go-module/gcp/oauth2?status.svg)](https://godoc.org/github.com/gjbae1212/go-module/gcp/oauth2)
-- logger (custom logger)  [![GoDoc](https://godoc.org/github.com/gjbae1212/go-module/logger?status.svg)](https://godoc.org/github.com/gjbae1212/go-module/logger)
-- mysql (mysql connector) [![GoDoc](https://godoc.org/github.com/gjbae1212/go-module/mysql?status.svg)](https://godoc.org/github.com/gjbae1212/go-module/mysql)
-- sentry (send to sentry) [![GoDoc](https://godoc.org/github.com/gjbae1212/go-module/sentry?status.svg)](https://godoc.org/github.com/gjbae1212/go-module/sentry)
- ssh (cert-authority with rsa, ed25519) [![GoDoc](https://godoc.org/github.com/gjbae1212/go-module/ssh?status.svg)](https://godoc.org/github.com/gjbae1212/go-module/ssh)
-- util (backoff, string, protobuf .. and so on.) [![GoDoc](https://godoc.org/github.com/gjbae1212/go-module/util?status.svg)](https://godoc.org/github.com/gjbae1212/go-module/util)
+
+- **feedly**: it is a interface that communicate the Feedly. 
+- **redis**: support multi redis using consistent hashing.  
+- **gcp** 
+  - **bigquery** streamer: efficiently bulk insert to bigquery.   
+  - **dialogflow**: google dialogflow interface. 
+  - **oauth2**: google oauth2 interface.
+- **logger**: custom logger. 
+- **mysql**: custom mysql connector. 
+- **websocket**: it is wrapper websocket that message will broadcasts users of connect using gorilla. 
+- **async_task**: it is a something implementing a async worker model using channel.  
+- **ssh**: it is a something that clients will connect your servers through security channel using a way of ssh-cert-authority  with rsa, ed25519 algorithm.
+- **encryption**: it is a encryption package, currently support only AES.  
+- **etc**: sentry, util .. and so on. 
