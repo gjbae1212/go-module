@@ -23,5 +23,6 @@ This is useful utility for go.
 - **websocket**: it is wrapper websocket that message will broadcasts users of connect using gorilla. 
 - **async_task**: it is a something implementing a async worker model using channel.  
 - **ssh**: it is a something that clients will connect your servers through security channel using a way of ssh-cert-authority  with rsa, ed25519 algorithm.
-- **encryption**: it is a encryption package, currently support only AES.  
+- **encryption**: it is a encryption package, currently support only AES.
+- **ip**: it is a package associated ip.  
 - **etc**: sentry, util .. and so on. 
