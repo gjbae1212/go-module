@@ -1,55 +1,60 @@
 package sentry
 
 import (
-	"fmt"
-	"github.com/getsentry/raven-go"
-	"net/http"
-	"runtime"
-)
+	"errors"
 
-const (
-	defaultStackLength = 20 * 1024
+	gosentry "github.com/getsentry/sentry-go"
+	sentryecho "github.com/getsentry/sentry-go/echo"
+	"github.com/labstack/echo/v4"
 )
 
 var (
-	stackLength int
+	ErrSentryEmptyParam = errors.New("[err] sentry empty params")
 )
 
-func Load(sentryDSN string, slength int) error {
-	if err := raven.SetDSN(sentryDSN); err != nil {
-		return err
+// InitSentry is to initialize Sentry setting.
+func InitSentry(sentryDSN, environment, release, hostname string, stack, debug bool) error {
+	if sentryDSN == "" || environment == "" || release == "" || hostname == "" {
+		return ErrSentryEmptyParam
 	}
-	if slength <= 0 {
-		stackLength = defaultStackLength
-	} else {
-		stackLength = slength
+
+	// if debug is true, it could show detail stack-log.
+	if err := gosentry.Init(gosentry.ClientOptions{
+		Dsn:              sentryDSN,
+		Environment:      environment,
+		Release:          release,
+		ServerName:       hostname,
+		AttachStacktrace: stack,
+		Debug:            debug,
+	}); err != nil {
+		return err
 	}
 
 	return nil
 }
 
-func MakePacket(err error, stack bool) *raven.Packet {
-	message := fmt.Sprint(err)
-	packet := raven.NewPacket(message)
-	if stack {
-		trace := make([]byte, stackLength)
-		length := runtime.Stack(trace, false)
-		packet.Extra["Stack"] = string(trace[:length])
+// Error sends an error to Sentry.
+func Error(err error) {
+	if err == nil {
+		return
 	}
-	return packet
+	gosentry.CaptureException(err)
 }
 
-func MakePacketWithRequest(err error, req *http.Request, stack bool) *raven.Packet {
-	message := fmt.Sprint(err)
-	packet := raven.NewPacket(message, raven.NewHttp(req))
-	if stack {
-		trace := make([]byte, stackLength)
-		length := runtime.Stack(trace, false)
-		packet.Extra["Stack"] = string(trace[:length])
+// ErrorWithEcho sends an error with the Echo of context information to the Sentry.
+func ErrorWithEcho(err error, ctx echo.Context, info map[string]string) {
+	if err == nil || ctx == nil {
+		return
 	}
-	return packet
-}
-
-func Raise(packet *raven.Packet, captureTags map[string]string) {
-	raven.Capture(packet, captureTags)
+	var id string
+	if info != nil {
+		id = info["id"]
+	}
+	if hub := sentryecho.GetHubFromContext(ctx); hub != nil {
+		hub.WithScope(func(scope *gosentry.Scope) {
+			scope.SetUser(gosentry.User{ID: id, IPAddress: ctx.RealIP()})
+			scope.SetFingerprint([]string{err.Error()})
+			hub.CaptureException(err)
+		})
+	}
 }
