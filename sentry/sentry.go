@@ -4,8 +4,6 @@ import (
 	"errors"
 
 	gosentry "github.com/getsentry/sentry-go"
-	sentryecho "github.com/getsentry/sentry-go/echo"
-	"github.com/labstack/echo/v4"
 )
 
 var (
@@ -39,22 +37,4 @@ func Error(err error) {
 		return
 	}
 	gosentry.CaptureException(err)
-}
-
-// ErrorWithEcho sends an error with the Echo of context information to the Sentry.
-func ErrorWithEcho(err error, ctx echo.Context, info map[string]string) {
-	if err == nil || ctx == nil {
-		return
-	}
-	var id string
-	if info != nil {
-		id = info["id"]
-	}
-	if hub := sentryecho.GetHubFromContext(ctx); hub != nil {
-		hub.WithScope(func(scope *gosentry.Scope) {
-			scope.SetUser(gosentry.User{ID: id, IPAddress: ctx.RealIP()})
-			scope.SetFingerprint([]string{err.Error()})
-			hub.CaptureException(err)
-		})
-	}
 }

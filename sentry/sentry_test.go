@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/labstack/echo/v4"
-
 	"github.com/stretchr/testify/assert"
 )
 
@@ -43,24 +41,6 @@ func TestError(t *testing.T) {
 
 	for _, t := range tests {
 		Error(t.inputErr)
-	}
-	_ = assert
-}
-
-func TestErrorWithEcho(t *testing.T) {
-	assert := assert.New(t)
-
-	e := echo.New()
-
-	tests := map[string]struct {
-		inputErr     error
-		inputContext echo.Context
-	}{
-		"success": {inputErr: fmt.Errorf("[err] test"), inputContext: e.NewContext(nil, nil)},
-	}
-
-	for _, t := range tests {
-		ErrorWithEcho(t.inputErr, t.inputContext, nil)
 	}
 	_ = assert
 }

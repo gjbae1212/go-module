@@ -16,7 +16,6 @@ require (
 	github.com/gorilla/websocket v1.4.0
 	github.com/goware/urlx v0.2.0
 	github.com/joomcode/errorx v0.1.0
-	github.com/labstack/echo/v4 v4.1.10
 	github.com/labstack/gommon v0.3.0
 	github.com/mikesmitty/edkey v0.0.0-20170222072505-3356ea4e686a
 	github.com/pkg/errors v0.8.1
