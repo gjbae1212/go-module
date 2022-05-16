@@ -13,7 +13,7 @@ require (
 	github.com/google/go-cmp v0.3.0
 	github.com/google/martian v2.1.0+incompatible // indirect
 	github.com/googleapis/gax-go v2.0.2+incompatible // indirect
-	github.com/gorilla/websocket v1.4.0
+	github.com/gorilla/websocket v1.4.1
 	github.com/goware/urlx v0.2.0
 	github.com/joomcode/errorx v0.1.0
 	github.com/labstack/gommon v0.3.0
